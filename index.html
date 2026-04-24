@@ -171,8 +171,15 @@ async function apiCall(body){
   const res=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
   if(!res.ok) throw new Error(`HTTP ${res.status}`);
   const data=await res.json();
-  if(data.error) throw new Error(data.error);
+  if(data.error){
+    console.error("Backend error:", data.error, body?.action||"unknown_action");
+    throw new Error(data.error);
+  }
   return data;
+}
+async function fetchAiFeedback(payload){
+  const data=await apiCall({action:"aiCoach",...payload});
+  return data.text||"";
 }
 
 // ── STYLES ────────────────────────────────────────────────────────────────────
@@ -449,7 +456,7 @@ function StudyScreen({session,si,onNext,onExit,progress}){
 // ══════════════════════════════════════════════════════════════════════════════
 //  QUIZ
 // ══════════════════════════════════════════════════════════════════════════════
-function QuizScreen({qs,qi,answers,inputV,setInputV,fb,onSubmit,onAdvance}){
+function QuizScreen({qs,qi,answers,inputV,setInputV,fb,aiFeedback,onSubmit,onAdvance}){
   const q=qs[qi];
   if(!q)return null;
   const correct=Object.values(answers).filter(a=>a.ok).length;
@@ -468,6 +475,13 @@ function QuizScreen({qs,qi,answers,inputV,setInputV,fb,onSubmit,onAdvance}){
                 <div style={{...mono,fontSize:17,color:C.red,marginBottom:10}}>{fb.userAns||"(vacío)"}</div>
                 <div style={{fontSize:12,color:C.textSec,marginBottom:4}}>Correcto</div>
                 <div style={{...mono,fontSize:22,color:C.green}}>{fb.correctAns}</div>
+                <div style={{marginTop:12,background:"#040d1a",borderRadius:10,padding:"12px 14px",textAlign:"left"}}>
+                  <div style={{fontSize:10,color:C.violet,letterSpacing:2,textTransform:"uppercase",fontWeight:700,marginBottom:6}}>Consejo IA</div>
+                  {aiFeedback?.loading&&<div style={{fontSize:13,color:C.textSec}}>Generando explicación...</div>}
+                  {!aiFeedback?.loading&&aiFeedback?.error&&<div style={{fontSize:13,color:C.red}}>{aiFeedback.error}</div>}
+                  {!aiFeedback?.loading&&!aiFeedback?.error&&aiFeedback?.text&&<div style={{fontSize:13,color:"#e2e8f0",lineHeight:1.5}}>{aiFeedback.text}</div>}
+                  {!aiFeedback?.loading&&!aiFeedback?.error&&!aiFeedback?.text&&<div style={{fontSize:13,color:C.textSec}}>Sin consejo disponible.</div>}
+                </div>
               </div>
             )}
             {fb.ok&&<div style={{...mono,fontSize:22,color:C.green,marginBottom:14}}>{fb.correctAns}</div>}
@@ -526,7 +540,7 @@ function QuizScreen({qs,qi,answers,inputV,setInputV,fb,onSubmit,onAdvance}){
 // ══════════════════════════════════════════════════════════════════════════════
 //  RESULTS
 // ══════════════════════════════════════════════════════════════════════════════
-function ResultsScreen({results,streak,saving,onHome,onStats}){
+function ResultsScreen({results,streak,saving,aiRecap,onHome,onStats}){
   const pct=Math.round((results.score/results.total)*100);
   const[em,lb,rc]=pct>=90?["🏆","¡Perfecto!",C.green]:pct>=70?["👍","¡Buen trabajo!",C.amber]:["💪","Sigue practicando",C.red];
   return(
@@ -567,6 +581,14 @@ function ResultsScreen({results,streak,saving,onHome,onStats}){
         )}
 
         {results.corrects.length===0&&<div style={{...S.card,textAlign:"center",color:C.green,marginBottom:16,fontSize:15}}>✓ ¡Sin errores! Todos los verbos avanzan de nivel.</div>}
+        {aiRecap&&(
+          <div style={{...S.card,marginBottom:16}}>
+            <div style={{fontSize:10,color:C.violet,letterSpacing:2,textTransform:"uppercase",fontWeight:700,marginBottom:10}}>Resumen IA</div>
+            {aiRecap.loading&&<div style={{fontSize:13,color:C.textSec}}>Analizando tus errores...</div>}
+            {!aiRecap.loading&&aiRecap.error&&<div style={{fontSize:13,color:C.red}}>{aiRecap.error}</div>}
+            {!aiRecap.loading&&!aiRecap.error&&aiRecap.text&&<div style={{fontSize:13,color:"#e2e8f0",lineHeight:1.6}}>{aiRecap.text}</div>}
+          </div>
+        )}
 
         {results.errs.length>0&&(
           <div style={{...S.card,marginBottom:16}}>
@@ -651,6 +673,8 @@ function App(){
   const [answers,setAnswers]=useState({});
   const [inputV,setInputV]=useState("");
   const [fb,setFb]=useState(null);
+  const [aiFeedback,setAiFeedback]=useState({loading:false,error:"",text:"",key:""});
+  const [aiRecap,setAiRecap]=useState(null);
   const [results,setResults]=useState(null);
   const [saving,setSaving]=useState(false);
   const aRef=useRef({});
@@ -688,26 +712,62 @@ function App(){
   function startSession(){
     const s=buildSession(progress,user.dayNumber);
     if(!s.length)return;
-    setSession(s);setSi(0);setFb(null);aRef.current={};setAnswers({});
+    setSession(s);setSi(0);setFb(null);setAiFeedback({loading:false,error:"",text:"",key:""});setAiRecap(null);aRef.current={};setAnswers({});
     setScreen("study");
   }
 
   function nextStudy(){
     if(si+1<session.length)setSi(i=>i+1);
-    else{const q=buildQuiz(session);setQs(q);setQi(0);aRef.current={};setAnswers({});setInputV("");setFb(null);setScreen("quiz");}
+    else{const q=buildQuiz(session);setQs(q);setQi(0);aRef.current={};setAnswers({});setInputV("");setFb(null);setAiFeedback({loading:false,error:"",text:"",key:""});setScreen("quiz");}
   }
 
   function submitAnswer(q,userAns){
-    const ok=userAns.trim().toLowerCase()===q.correct.toLowerCase();
-    const entry={ans:userAns.trim(),correct:q.correct,ok,vid:q.vid,field:q.field};
+    const cleanAns=userAns.trim();
+    const ok=cleanAns.toLowerCase()===q.correct.toLowerCase();
+    const verb=VERBS.find(v=>v.id===q.vid);
+    const entry={ans:cleanAns,correct:q.correct,ok,vid:q.vid,field:q.field};
     aRef.current={...aRef.current,[q.id]:entry};
     setAnswers({...aRef.current});
-    setFb({ok,userAns:userAns.trim(),correctAns:q.correct,sentence:q.sentence||null});
+    const nextFb={
+      ok,
+      qid:q.id,
+      qType:q.type,
+      qText:q.q,
+      field:q.field,
+      verbBase:verb?.b||"",
+      verbMeaning:verb?.m||"",
+      userAns:cleanAns,
+      correctAns:q.correct,
+      sentence:q.sentence||null
+    };
+    setFb(nextFb);
+    if(!ok){
+      const reqKey=`${nextFb.qid}::${nextFb.userAns.toLowerCase()}`;
+      setAiFeedback({loading:true,error:"",text:"",key:reqKey});
+      fetchAiFeedback({
+        questionType:nextFb.qType,
+        questionText:nextFb.qText,
+        sentence:nextFb.sentence,
+        verbBase:nextFb.verbBase,
+        verbMeaning:nextFb.verbMeaning,
+        field:nextFb.field,
+        userAnswer:nextFb.userAns,
+        correctAnswer:nextFb.correctAns
+      }).then(text=>{
+        setAiFeedback(cur=>cur.key===reqKey?{loading:false,error:"",text,key:reqKey}:cur);
+      }).catch((e)=>{
+        console.error("AI feedback error:", e);
+        setAiFeedback(cur=>cur.key===reqKey?{loading:false,error:"No se pudo generar consejo en este momento.",text:"",key:reqKey}:cur);
+      });
+    }else{
+      setAiFeedback({loading:false,error:"",text:"",key:""});
+    }
     setInputV("");
   }
 
   function advance(){
     setFb(null);
+    setAiFeedback({loading:false,error:"",text:"",key:""});
     if(qi+1<qs.length)setQi(i=>i+1);
     else finishQuiz();
   }
@@ -739,6 +799,26 @@ function App(){
     const updatedUser={...user,streak:newStreak,dayNumber:newDay};
     setUser(updatedUser);setProg(newProg);setHistory(newHistory);
     setResults({score,total,strong:st,weak:wk,reviewing:rv,errs,corrects});
+    if(corrects.length){
+      setAiRecap({loading:true,error:"",text:""});
+      fetchAiFeedback({
+        questionType:"session_summary",
+        questionText:"Resume el patrón principal de errores de esta sesión en un párrafo breve.",
+        sentence:"",
+        verbBase:"resumen",
+        verbMeaning:"resumen de sesión",
+        field:"pp",
+        userAnswer:corrects.map(c=>`${c.verb.b}|${c.field}|${c.userAns||"(vacío)"}`).join("; "),
+        correctAnswer:corrects.map(c=>`${c.verb.b}|${c.correct}`).join("; ")
+      }).then(text=>{
+        setAiRecap({loading:false,error:"",text});
+      }).catch((e)=>{
+        console.error("AI recap error:", e);
+        setAiRecap({loading:false,error:"No se pudo generar el resumen IA.",text:""});
+      });
+    }else{
+      setAiRecap(null);
+    }
     setScreen("results");
 
     // Save to Google Sheets
@@ -764,8 +844,8 @@ function App(){
   if(screen==="home")return<HomeScreen user={user} progress={progress} history={history} onStart={startSession} onLogout={logout} onStats={()=>setScreen("stats")} onLeaderboard={()=>setScreen("leaderboard")}/>;
   if(screen==="leaderboard")return<LeaderboardScreen currentUser={user?.username} onBack={()=>setScreen("home")}/>;
   if(screen==="study")return<StudyScreen session={session} si={si} onNext={nextStudy} onExit={()=>setScreen("home")} progress={progress}/>;
-  if(screen==="quiz")return<QuizScreen qs={qs} qi={qi} answers={answers} inputV={inputV} setInputV={setInputV} fb={fb} onSubmit={submitAnswer} onAdvance={advance}/>;
-  if(screen==="results")return<ResultsScreen results={results} streak={user.streak} saving={saving} onHome={()=>setScreen("home")} onStats={()=>setScreen("stats")}/>;
+  if(screen==="quiz")return<QuizScreen qs={qs} qi={qi} answers={answers} inputV={inputV} setInputV={setInputV} fb={fb} aiFeedback={aiFeedback} onSubmit={submitAnswer} onAdvance={advance}/>;
+  if(screen==="results")return<ResultsScreen results={results} streak={user.streak} saving={saving} aiRecap={aiRecap} onHome={()=>setScreen("home")} onStats={()=>setScreen("stats")}/>;
   if(screen==="stats")return<StatsScreen progress={progress} onBack={()=>setScreen("home")} onReset={resetProgress}/>;
   return null;
 }

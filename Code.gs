@@ -9,6 +9,7 @@
 // ============================================================
 
 const SPREADSHEET_ID = '1eQFztJ3h5hEtIAss1vYgQ-KYsCsQUKiWkzGCShicO0g';
+const GEMINI_MODEL = 'gemini-1.5-flash';
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -21,6 +22,7 @@ function doPost(e) {
       case 'login':       result = login(body);        break;
       case 'save':        result = saveSession(body);  break;
       case 'leaderboard': result = leaderboard();      break;
+      case 'aiCoach':     result = aiCoach(body);      break;
       default:            result = { error: 'Acción desconocida' };
     }
     return out(result);
@@ -153,4 +155,78 @@ function leaderboard() {
 
   leaders.sort((a, b) => b.mastered - a.mastered || b.streak - a.streak || b.introduced - a.introduced);
   return { success: true, leaders };
+}
+
+// ── AI COACH (Gemini) ────────────────────────────────────────────────────────
+// Guarda la key una vez en Apps Script:
+// PropertiesService.getScriptProperties().setProperty('GEMINI_API_KEY', 'TU_API_KEY')
+function aiCoach({ questionType, questionText, sentence, verbBase, verbMeaning, field, userAnswer, correctAnswer }) {
+  const key = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!key) return { error: 'Falta GEMINI_API_KEY en Script Properties' };
+  if (!questionText || !correctAnswer || !verbBase || !field) return { error: 'Faltan datos para generar feedback IA' };
+
+  const payload = {
+    contents: [{
+      role: 'user',
+      parts: [{
+        text: buildAiPrompt({
+          questionType,
+          questionText,
+          sentence,
+          verbBase,
+          verbMeaning,
+          field,
+          userAnswer,
+          correctAnswer
+        })
+      }]
+    }],
+    generationConfig: {
+      temperature: 0.3,
+      maxOutputTokens: 180
+    }
+  };
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
+  const response = UrlFetchApp.fetch(url, {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+
+  const code = response.getResponseCode();
+  const raw = response.getContentText();
+  const data = raw ? JSON.parse(raw) : {};
+  if (code < 200 || code >= 300) {
+    const msg = data.error?.message || `Gemini HTTP ${code}`;
+    return { error: `Error IA: ${msg}` };
+  }
+
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) return { error: 'La IA no devolvió contenido' };
+  return { success: true, text: String(text).trim() };
+}
+
+function buildAiPrompt(ctx) {
+  return [
+    'Eres un tutor de inglés para hispanohablantes.',
+    'Devuelve solo texto en español, breve (2 a 4 frases), tono claro y motivador.',
+    'No cambies ni inventes conjugaciones: usa como forma oficial únicamente "correctAnswer".',
+    'Explica por qué la respuesta del usuario no coincide y da una pista práctica para recordarlo.',
+    '',
+    `Tipo de pregunta: ${ctx.questionType || 'desconocido'}`,
+    `Campo evaluado: ${ctx.field === 'p' ? 'pasado simple' : 'participio pasado'}`,
+    `Verbo base: ${ctx.verbBase}`,
+    `Significado (es): ${ctx.verbMeaning || 'n/a'}`,
+    `Pregunta: ${ctx.questionText}`,
+    `Frase (si aplica): ${ctx.sentence || 'n/a'}`,
+    `Respuesta del usuario: ${ctx.userAnswer || '(vacío)'}`,
+    `Respuesta correcta oficial: ${ctx.correctAnswer}`,
+    '',
+    'Formato deseado:',
+    '- Frase 1: diferencia concreta entre respuesta del usuario y correcta.',
+    '- Frase 2: mini regla o patrón útil.',
+    '- Frase 3 (opcional): un tip de memoria corto.'
+  ].join('\n');
 }
