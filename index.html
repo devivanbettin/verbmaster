@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VerbMaster</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin></script>
@@ -12,14 +12,14 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
-    body { background: #09090b; color: #e5e7eb; font-family: 'DM Sans', sans-serif; }
+    body { background: #000000; color: rgba(244, 242, 238, 0.92); font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #111827; }
-    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: #000000; }
+    ::-webkit-scrollbar-thumb { background: #282A3A; border-radius: 3px; }
     button { -webkit-tap-highlight-color: transparent; }
     input:focus { outline: none; }
-    .font-display { font-family: 'Playfair Display', serif; }
-    .font-mono-ui { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+    .font-display { font-family: 'Inter', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.02em; }
+    .font-mono-ui { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -34,6 +34,7 @@ import {
   FaChartLine,
   FaRocket,
   FaArrowLeft,
+  FaArrowRight,
   FaXmark as FaTimes,
   FaCheck,
   FaXmark,
@@ -45,7 +46,9 @@ import {
   FaReply,
   FaCloud,
   FaLanguage,
-  FaStar
+  FaStar,
+  FaTrash,
+  FaMedal
 } from "https://esm.sh/react-icons@5.5.0/fa6?deps=react@18.2.0";
 
 // ── CONFIG — reemplaza con tu URL de Apps Script ─────────────────────────────
@@ -159,7 +162,7 @@ const VERBS = [
 const INTERVALS=[1,1,2,4,7,14], NEW_PER_DAY=7, REV_PER_DAY=3;
 
 // ── COLORS ────────────────────────────────────────────────────────────────────
-const C={bg:"#07101f",card:"#0e1a2e",border:"#1e3a5a",amber:"#f59e0b",green:"#34d399",red:"#f87171",violet:"#a78bfa",blue:"#60a5fa",textPri:"#e2e8f0",textSec:"#64748b",textMut:"#1e3a5a"};
+const C={bg:"#000000",card:"#282A3A",border:"rgba(255,255,255,0.08)",amber:"#C69749",green:"#9aab8a",red:"#c9a6a6",violet:"#b5a88c",blue:"#8a95a8",textPri:"#f4f2ee",textSec:"rgba(244,242,238,0.45)",textMut:"#3a3d52"};
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
@@ -208,27 +211,34 @@ async function fetchAiFeedback(payload){
 // ── UI HELPERS ────────────────────────────────────────────────────────────────
 function Shell({children}){
   return (
-    <div className="relative min-h-screen overflow-hidden text-zinc-100">
-      <div className="pointer-events-none absolute inset-0 bg-[#0b0b0f]" />
-      <div className="pointer-events-none absolute -left-24 -top-20 h-72 w-72 rounded-full bg-fuchsia-500/40 blur-3xl" />
-      <div className="pointer-events-none absolute right-0 top-8 h-72 w-72 rounded-full bg-indigo-500/35 blur-3xl" />
-      <div className="pointer-events-none absolute left-1/3 bottom-8 h-80 w-80 rounded-full bg-cyan-400/30 blur-3xl" />
-      <div className="pointer-events-none absolute right-24 bottom-0 h-64 w-64 rounded-full bg-amber-300/25 blur-3xl" />
+    <div className="relative min-h-screen overflow-hidden text-[#f4f2ee]">
+      <div className="pointer-events-none absolute inset-0 bg-[#000000]" />
+      <div className="pointer-events-none absolute -left-32 top-0 h-80 w-80 rounded-full bg-[#282A3A] opacity-90 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-1/4 h-72 w-72 rounded-full bg-[#735F32] opacity-25 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/2 h-64 w-[28rem] -translate-x-1/2 rounded-full bg-[#C69749] opacity-[0.07] blur-3xl" />
       <div className="relative mx-auto w-full max-w-[560px] px-5 pb-12 pt-7">{children}</div>
     </div>
   );
 }
 
 function Panel({className="",children}){
-  return <div className={`rounded-[28px] border border-white/10 bg-zinc-900/88 p-6 shadow-2xl shadow-black/40 backdrop-blur ${className}`}>{children}</div>;
+  return <div className={`rounded-2xl border border-white/[0.08] bg-[#282A3A]/95 p-6 shadow-lg shadow-black/25 backdrop-blur-sm ${className}`}>{children}</div>;
+}
+
+function chipAccentClass(col){
+  if(col===C.green)return "border-[#9aab8a]/45 text-[#9aab8a] bg-[#735F32]/10";
+  if(col===C.red)return "border-[#b08080]/40 text-[#dcc8c8] bg-black/30";
+  if(col===C.violet)return "border-[#b5a88c]/40 text-[#d4ccb8] bg-[#735F32]/10";
+  if(col===C.blue)return "border-[#8a95a8]/40 text-[#c5ccd8] bg-black/25";
+  return "border-[#C69749]/40 text-[#C69749] bg-[#735F32]/10";
 }
 
 function barColorClass(col){
-  if(col===C.green)return "bg-emerald-400";
-  if(col===C.red)return "bg-rose-400";
-  if(col===C.blue)return "bg-sky-400";
-  if(col===C.violet)return "bg-violet-400";
-  return "bg-amber-400";
+  if(col===C.green)return "bg-[#9aab8a]";
+  if(col===C.red)return "bg-[#a07070]";
+  if(col===C.blue)return "bg-[#8a95a8]";
+  if(col===C.violet)return "bg-[#735F32]";
+  return "bg-[#C69749]";
 }
 
 function Bar({val,max,col=C.amber}){
@@ -237,8 +247,8 @@ function Bar({val,max,col=C.amber}){
 }
 function Spinner(){
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-14 text-zinc-400">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-600 border-t-amber-300" />
+    <div className="flex flex-col items-center justify-center gap-3 py-14 text-white/45">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#3a3d4a] border-t-[#C69749]" />
       <span className="text-sm">Cargando...</span>
     </div>
   );
@@ -269,42 +279,42 @@ function LoginScreen({onLogin}){
     <Shell>
       <div className="mb-10 pt-8 text-center">
         <div className="mb-3 flex justify-center text-5xl"><FaBookOpen /></div>
-        <h1 className="font-display text-4xl text-zinc-100">VerbMaster</h1>
-        <p className="mt-2 text-sm text-zinc-300">Sistema de verbos irregulares en inglés</p>
+        <h1 className="font-display text-4xl text-[#f4f2ee]">VerbMaster</h1>
+        <p className="mt-2 text-sm text-white/70">Sistema de verbos irregulares en inglés</p>
       </div>
 
       <Panel className="mb-4">
         <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl bg-black/20 p-1">
           {["login","register"].map(m=>(
-            <button key={m} onClick={()=>{setMode(m);setErr("");}} className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${mode===m?"border-amber-300/80 bg-amber-300/20 text-amber-100":"border-white/10 bg-transparent text-zinc-300 hover:bg-white/5"}`}>
+            <button key={m} onClick={()=>{setMode(m);setErr("");}} className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${mode===m?"border-[#C69749]/50 bg-[#C69749]/12 text-[#f0e4c8]":"border-white/10 bg-transparent text-white/70 hover:bg-white/5"}`}>
               {m==="login"?"Entrar":"Crear cuenta"}
             </button>
           ))}
         </div>
 
         <div className="mb-4">
-          <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-zinc-400">Usuario</label>
-          <input className="w-full rounded-xl border border-white/10 bg-zinc-950/70 px-4 py-3 text-zinc-100 placeholder:text-zinc-500" value={username} onChange={e=>setUsername(e.target.value)}
+          <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-white/45">Usuario</label>
+          <input className="w-full rounded-xl border border-white/10 bg-[#181a24]/90 px-4 py-3 text-[#f4f2ee] placeholder:text-white/30" value={username} onChange={e=>setUsername(e.target.value)}
             onKeyDown={e=>e.key==="Enter"&&pin&&submit()}
             placeholder="tu_nombre" autoCapitalize="none" autoCorrect="off" />
         </div>
 
         <div className="mb-5">
-          <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-zinc-400">PIN (4 dígitos)</label>
-          <input className="font-mono-ui w-full rounded-xl border border-white/10 bg-zinc-950/70 px-4 py-3 text-zinc-100 placeholder:text-zinc-500" type="password" inputMode="numeric" maxLength={4}
+          <label className="mb-2 block text-xs uppercase tracking-[0.2em] text-white/45">PIN (4 dígitos)</label>
+          <input className="font-mono-ui w-full rounded-xl border border-white/10 bg-[#181a24]/90 px-4 py-3 text-[#f4f2ee] placeholder:text-white/30" type="password" inputMode="numeric" maxLength={4}
             value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,"").slice(0,4))}
             onKeyDown={e=>e.key==="Enter"&&username&&submit()}
             placeholder="••••" />
         </div>
 
-        {err&&<div className="mb-4 rounded-xl border border-rose-400/40 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">{err}</div>}
+        {err&&<div className="mb-4 rounded-xl border border-[#a07070]/40 bg-[#8a5050]/12 px-4 py-3 text-sm text-[#dcc8c8]">{err}</div>}
 
-        <button className="w-full rounded-xl bg-amber-300 px-4 py-3 text-sm font-bold text-zinc-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-45" onClick={submit} disabled={!username.trim()||pin.length!==4||loading}>
+        <button className="w-full rounded-xl bg-[#C69749] px-4 py-3 text-sm font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45" onClick={submit} disabled={!username.trim()||pin.length!==4||loading}>
           {loading?"Conectando...":(mode==="login"?"Entrar →":"Crear cuenta →")}
         </button>
       </Panel>
 
-      <p className="flex items-center justify-center gap-1 text-center text-xs text-zinc-400">Tu progreso se guarda en la nube <FaCloud className="inline" /></p>
+      <p className="flex items-center justify-center gap-1 text-center text-xs text-white/45">Tu progreso se guarda en la nube <FaCloud className="inline" /></p>
     </Shell>
   );
 }
@@ -323,58 +333,58 @@ function HomeScreen({user,progress,history,onStart,onLogout,onStats,onLeaderboar
     <Shell>
       <div className="mb-4 flex items-center justify-between pt-1">
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-[0.35em] text-amber-200">VerbMaster</div>
-          <h2 className="mt-1 text-2xl font-semibold text-zinc-100">Hola, {user.username} 👋</h2>
+          <div className="text-[11px] font-bold uppercase tracking-[0.35em] text-[#e5cf9e]">VerbMaster</div>
+          <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#f4f2ee]">Hola, {user.username}</h2>
         </div>
-        <button onClick={onLogout} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/5">Salir</button>
+        <button onClick={onLogout} className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/70 transition hover:bg-white/5">Salir</button>
       </div>
 
       <Panel className="mb-4 flex items-center justify-between">
         <div>
-          <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-400">Progreso global</div>
-          <div className="text-4xl font-bold text-amber-300">{pct}%</div>
-          <div className="text-xs text-zinc-400">{introduced}/100 verbos · Día {user.dayNumber}</div>
+          <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-white/45">Progreso global</div>
+          <div className="text-4xl font-bold text-[#C69749]">{pct}%</div>
+          <div className="text-xs text-white/45">{introduced}/100 verbos · Día {user.dayNumber}</div>
         </div>
         <div className="text-center">
           <div className="flex justify-center text-3xl"><FaFire /></div>
-          <div className="text-3xl font-bold text-amber-300">{user.streak}</div>
-          <div className="text-xs text-zinc-400">días seguidos</div>
+          <div className="text-3xl font-bold text-[#C69749]">{user.streak}</div>
+          <div className="text-xs text-white/45">días seguidos</div>
         </div>
       </Panel>
       <Bar val={introduced} max={100}/>
 
       <div className="mb-4 grid grid-cols-3 gap-2">
-        {[{l:"Fuertes",v:strongCt,c:"text-emerald-300",i:<FaDumbbell />},{l:"Repasos",v:dueCt,c:"text-amber-300",i:<FaRotate />},{l:"Sin ver",v:100-introduced,c:"text-violet-300",i:<FaBookOpen />}].map(({l,v,c,i})=>(
+        {[{l:"Fuertes",v:strongCt,c:"text-[#9aab8a]",i:<FaDumbbell />},{l:"Repasos",v:dueCt,c:"text-[#C69749]",i:<FaRotate />},{l:"Sin ver",v:100-introduced,c:"text-[#b5a88c]",i:<FaBookOpen />}].map(({l,v,c,i})=>(
           <Panel key={l} className="rounded-2xl p-3 text-center">
             <div className={`text-2xl font-bold ${c}`}>{v}</div>
-            <div className="mt-1 flex items-center justify-center gap-1 text-[11px] text-zinc-400">{i}{l}</div>
+            <div className="mt-1 flex items-center justify-center gap-1 text-[11px] text-white/45">{i}{l}</div>
           </Panel>
         ))}
       </div>
 
       {last7.length>0&&(
         <Panel className="mb-4">
-          <div className="mb-3 text-[10px] uppercase tracking-[0.2em] text-zinc-400">Últimas sesiones</div>
+          <div className="mb-3 text-[10px] uppercase tracking-[0.2em] text-white/45">Últimas sesiones</div>
           <div className="flex h-14 items-end gap-1.5">
             {last7.map((h,i)=>(
               <div key={i} className="flex flex-1 flex-col items-center gap-1">
-                <div className={`w-full rounded-sm ${h.pct>=80?"bg-emerald-300":h.pct>=60?"bg-amber-300":"bg-rose-300"}`} style={{height:`${Math.max(4,Math.round((h.pct/100)*46))}px`}}/>
-                <div className="text-[9px] text-zinc-400">{h.pct}%</div>
+                <div className={`w-full rounded-sm ${h.pct>=80?"bg-[#9aab8a]":h.pct>=60?"bg-[#C69749]":"bg-[#a07070]"}`} style={{height:`${Math.max(4,Math.round((h.pct/100)*46))}px`}}/>
+                <div className="text-[9px] text-white/45">{h.pct}%</div>
               </div>
             ))}
           </div>
         </Panel>
       )}
 
-      <Panel className="mb-5 py-4 text-sm text-zinc-300">
-        <span className="inline-flex items-center gap-1 font-semibold text-violet-300"><FaBookOpen /> {Math.min(NEW_PER_DAY,100-introduced)} nuevos</span>
+      <Panel className="mb-5 py-4 text-sm text-white/70">
+        <span className="inline-flex items-center gap-1 font-semibold text-[#b5a88c]"><FaBookOpen /> {Math.min(NEW_PER_DAY,100-introduced)} nuevos</span>
         {"  ·  "}
-        <span className="inline-flex items-center gap-1 font-semibold text-amber-300"><FaRotate /> {Math.min(dueCt,REV_PER_DAY)} repasos</span>
+        <span className="inline-flex items-center gap-1 font-semibold text-[#C69749]"><FaRotate /> {Math.min(dueCt,REV_PER_DAY)} repasos</span>
       </Panel>
 
-      <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-300 px-4 py-3 text-sm font-bold text-zinc-950 transition hover:bg-amber-200" onClick={onStart}><FaRocket />Comenzar sesión</button>
-      <button className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-zinc-200 transition hover:bg-white/10" onClick={onLeaderboard}><FaTrophy />Clasificación de amigos</button>
-      <button className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-zinc-200 transition hover:bg-white/10" onClick={onStats}><FaChartLine />Mi progreso completo</button>
+      <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C69749] px-4 py-3 text-sm font-semibold text-black transition hover:brightness-110" onClick={onStart}><FaRocket />Comenzar sesión</button>
+      <button className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10" onClick={onLeaderboard}><FaTrophy />Clasificación de amigos</button>
+      <button className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10" onClick={onStats}><FaChartLine />Mi progreso completo</button>
     </Shell>
   );
 }
@@ -390,48 +400,77 @@ function LeaderboardScreen({currentUser,onBack}){
     apiCall({action:"leaderboard"}).then(d=>setLeaders(d.leaders)).catch(e=>setErr(e.message));
   },[]);
 
-  const medals=["🥇","🥈","🥉"];
+  function rankBadge(i){
+    if(i===0)return <FaMedal className="text-xl text-[#C69749]" title="1.º" />;
+    if(i===1)return <FaMedal className="text-xl text-[#b5a88c]" title="2.º" />;
+    if(i===2)return <FaMedal className="text-xl text-[#9aab8a]" title="3.º" />;
+    return <span className="text-xs font-semibold tabular-nums text-white/40">{i+1}</span>;
+  }
 
   return(
     <Shell>
-      <div className="mb-5 flex items-center gap-3">
-        <button onClick={onBack} className="text-2xl text-zinc-400 transition hover:text-zinc-200"><FaArrowLeft /></button>
-        <h2 className="flex items-center gap-2 text-2xl font-semibold"><FaTrophy />Clasificación</h2>
+      <div className="mb-6 flex items-center gap-3">
+        <button type="button" onClick={onBack} className="rounded-lg p-1 text-2xl text-white/45 transition hover:bg-white/5 hover:text-white/80" aria-label="Volver"><FaArrowLeft /></button>
+        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-[#f4f2ee]"><FaTrophy className="text-[#C69749]" aria-hidden />Clasificación</h2>
       </div>
 
       {!leaders&&!err&&<Spinner/>}
-      {err&&<Panel className="text-rose-300">{err}</Panel>}
+      {err&&<Panel className="text-[#c9a6a6]">{err}</Panel>}
 
       {leaders&&leaders.map((l,i)=>{
         const isMe=l.username===currentUser;
+        const pct=Math.round((l.mastered/100)*100);
         return(
-          <Panel key={l.username} className={`mb-2.5 rounded-2xl p-4 ${isMe?"border-amber-300/50":"border-white/10"}`}>
-            <div className="flex items-center gap-3">
-              <div className="min-w-8 text-center text-2xl">{medals[i]||`#${i+1}`}</div>
-              <div className="flex-1">
-                <div className="mb-1 flex items-center gap-2">
-                  <span className={`text-base font-bold ${isMe?"text-amber-300":"text-zinc-100"}`}>{l.username}</span>
-                  {isMe&&<span className="rounded-md border border-amber-300/40 bg-amber-300/15 px-2 py-0.5 text-[10px] font-bold text-amber-200">TÚ</span>}
-                </div>
-                <div className="flex gap-4 text-xs text-zinc-400">
-                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-300"><FaDumbbell /> {l.mastered} dominados</span>
-                  <span className="inline-flex items-center gap-1"><FaBookOpen /> {l.introduced} vistos</span>
-                  <span className="inline-flex items-center gap-1"><FaFire /> {l.streak} días</span>
-                </div>
+          <Panel key={l.username} className={`mb-3 rounded-2xl p-5 ${isMe?"border-[#C69749]/40":"border-white/[0.08]"}`}>
+            <div className="flex gap-3 sm:gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-black/30">
+                {rankBadge(i)}
               </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-amber-300">{Math.round((l.mastered/100)*100)}%</div>
-                <div className="text-[10px] text-zinc-400">dominados</div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`truncate text-base font-semibold ${isMe?"text-[#C69749]":"text-[#f4f2ee]"}`}>{l.username}</span>
+                      {isMe&&<span className="rounded border border-[#C69749]/35 bg-[#C69749]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#e5cf9e]">Tú</span>}
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-xl font-semibold tabular-nums leading-none text-[#C69749] sm:text-2xl">{pct}<span className="text-base font-medium text-white/45">%</span></div>
+                    <div className="mt-1 text-[9px] font-medium uppercase tracking-[0.14em] text-white/35">De 100</div>
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/[0.06] pt-4 sm:gap-3">
+                  <div className="text-center">
+                    <FaDumbbell className="mx-auto mb-1.5 h-3.5 w-3.5 text-white/35" aria-hidden />
+                    <div className="text-base font-semibold tabular-nums text-[#f4f2ee] sm:text-lg">{l.mastered}</div>
+                    <div className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-white/40">Dominados</div>
+                  </div>
+                  <div className="text-center">
+                    <FaBookOpen className="mx-auto mb-1.5 h-3.5 w-3.5 text-white/35" aria-hidden />
+                    <div className="text-base font-semibold tabular-nums text-[#f4f2ee] sm:text-lg">{l.introduced}</div>
+                    <div className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-white/40">Vistos</div>
+                  </div>
+                  <div className="text-center">
+                    <FaFire className="mx-auto mb-1.5 h-3.5 w-3.5 text-white/35" aria-hidden />
+                    <div className="text-base font-semibold tabular-nums text-[#f4f2ee] sm:text-lg">{l.streak}</div>
+                    <div className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-white/40">Racha</div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/10">
-              <div className="h-full rounded-full bg-amber-300" style={{width:`${Math.round((l.mastered/100)*100)}%`}}/>
+            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
+              <div className="h-full rounded-full bg-[#C69749]" style={{width:`${pct}%`}}/>
             </div>
           </Panel>
         );
       })}
 
-      {leaders&&leaders.length===0&&<Panel className="text-center text-zinc-400">Nadie aquí todavía. ¡Sé el primero!</Panel>}
+      {leaders&&leaders.length===0&&<Panel className="text-center text-sm text-white/45">Nadie aquí todavía. ¡Sé el primero!</Panel>}
+      {leaders&&leaders.length>0&&leaders.length<4&&(
+        <p className="mt-4 rounded-xl border border-dashed border-white/[0.08] bg-[#282A3A]/40 px-4 py-5 text-center text-xs leading-relaxed text-white/40">
+          Cuando haya más personas en la tabla, la clasificación será más útil. Invita a alguien a practicar contigo.
+        </p>
+      )}
     </Shell>
   );
 }
@@ -449,35 +488,40 @@ function StudyScreen({session,si,onNext,onExit,progress}){
   return(
     <Shell>
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm text-zinc-300">Estudio — {si+1}/{session.length}</span>
-        <button onClick={onExit} className="text-xl text-zinc-400 transition hover:text-zinc-200"><FaTimes /></button>
+        <span className="text-sm text-white/70">Estudio — {si+1}/{session.length}</span>
+        <button onClick={onExit} className="text-xl text-white/45 transition hover:text-white/80"><FaTimes /></button>
       </div>
       <Bar val={si} max={session.length}/>
-      <div className={`mb-3 inline-flex items-center gap-1 rounded-md border px-3 py-1 text-xs font-bold ${barColorClass(col).replace("bg-","border-")}/40 ${barColorClass(col).replace("bg-","text-")}`}>{lvlIcon}{lbl}</div>
+      <div className={`mb-3 inline-flex items-center gap-1 rounded-md border px-3 py-1 text-xs font-bold ${chipAccentClass(col)}`}>{lvlIcon}{lbl}</div>
       <Panel className="mb-4 text-center">
-        <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
-          {[{form:v.b,label:"BASE",fc:"text-zinc-100"},{form:v.p,label:"PASADO",fc:"text-amber-300"},{form:v.pp,label:"PARTICIPIO",fc:"text-emerald-300"}].map(({form,label,fc},i)=>(
-            <div key={i} className="flex items-center gap-3">
-              {i>0&&<span className="text-zinc-500">→</span>}
-              <div className="text-center">
-                <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-zinc-400">{label}</div>
-                <div className={`font-mono-ui ${i===0?"text-2xl":"text-lg"} ${fc}`}>{form}</div>
+        <div className="mx-auto mb-4 flex w-full max-w-sm flex-col items-center gap-1 sm:max-w-none sm:flex-row sm:flex-nowrap sm:justify-center sm:gap-x-2 sm:overflow-x-auto sm:pb-1">
+          {[{form:v.b,label:"BASE",fc:"text-[#f4f2ee]",sz:"text-xl sm:text-2xl"},{form:v.p,label:"PASADO",fc:"text-[#C69749]",sz:"text-lg sm:text-xl"},{form:v.pp,label:"PARTICIPIO",fc:"text-[#9aab8a]",sz:"text-lg sm:text-xl"}].map(({form,label,fc,sz},i)=>(
+            <React.Fragment key={i}>
+              {i>0&&(
+                <>
+                  <span className="py-0.5 text-xs text-white/25 sm:hidden" aria-hidden>↓</span>
+                  <span className="hidden px-1 text-white/30 sm:inline" aria-hidden>→</span>
+                </>
+              )}
+              <div className="w-full px-1 py-2 text-center sm:w-auto sm:min-w-[6.5rem] sm:max-w-[11rem] sm:px-2 sm:py-0">
+                <div className="mb-1 text-[10px] uppercase tracking-[0.2em] text-white/45">{label}</div>
+                <div className={`font-mono-ui break-words leading-snug ${sz} ${fc}`}>{form}</div>
               </div>
-            </div>
+            </React.Fragment>
           ))}
         </div>
-        <div className="mb-5 inline-flex items-center gap-1 text-sm font-semibold text-violet-300"><FaLanguage /> {v.m}</div>
+        <div className="mb-5 inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 text-sm font-semibold text-[#b5a88c]"><FaLanguage className="shrink-0" /> <span className="break-words">{v.m}</span></div>
         <div className="border-t border-white/10 pt-4">
-          <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-zinc-400">Ejemplos en contexto</div>
+          <div className="mb-3 text-[10px] uppercase tracking-[0.2em] text-white/45">Ejemplos en contexto</div>
           {v.e.map((ex,i)=>(
-            <div key={i} className="mb-2 rounded-xl bg-black/35 px-4 py-3 text-left">
-              <span className={`mr-2 text-[10px] font-bold ${i===0?"text-amber-300":"text-emerald-300"}`}>{i===0?"PASADO":"PARTICIPIO"}</span>
-              <span className="text-sm italic text-zinc-200">{ex}</span>
+            <div key={i} className="mb-2 rounded-xl bg-black/35 px-3 py-3 text-left sm:px-4">
+              <div className={`mb-1.5 block text-[10px] font-bold sm:mb-0 sm:mr-2 sm:inline ${i===0?"text-[#C69749]":"text-[#9aab8a]"}`}>{i===0?"PASADO":"PARTICIPIO"}</div>
+              <p className="break-words text-sm italic leading-relaxed text-white/80 sm:text-[15px]">{ex}</p>
             </div>
           ))}
         </div>
       </Panel>
-      <button className="w-full rounded-xl bg-amber-300 px-4 py-3 text-sm font-bold text-zinc-950 transition hover:bg-amber-200" onClick={onNext}>{si+1<session.length?"Siguiente →":"¡Al quiz! 🎯"}</button>
+      <button className="w-full rounded-xl bg-[#C69749] px-4 py-3 text-sm font-semibold text-black transition hover:brightness-110" onClick={onNext}>{si+1<session.length?"Siguiente →":"Ir al quiz"}</button>
     </Shell>
   );
 }
@@ -492,60 +536,72 @@ function QuizScreen({qs,qi,answers,inputV,setInputV,fb,aiFeedback,onSubmit,onAdv
 
   if(fb)return(
     <Shell>
-      <div className="mb-3 flex items-center justify-start">
-        <div className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-zinc-300">{qi+1} / {qs.length}</div>
+      <div className="mb-4 flex items-center justify-start">
+        <div className="rounded-full border border-white/[0.08] bg-[#181a24]/90 px-3.5 py-1.5 text-xs font-medium tabular-nums text-white/55">
+          <span className="text-white/80">{qi+1}</span>
+          <span className="mx-1 text-white/25">/</span>
+          <span>{qs.length}</span>
+        </div>
       </div>
       <Bar val={qi} max={qs.length}/>
-      <Panel className={`mb-4 text-center ${fb.ok?"border-emerald-300/40":"border-rose-300/40"}`}>
-        <div className="mb-2 flex justify-center text-5xl">{fb.ok?<FaCheck />:<FaXmark />}</div>
-        <div className={`mb-4 text-2xl font-bold ${fb.ok?"text-emerald-300":"text-rose-300"}`}>{fb.ok?"¡Correcto!":"Incorrecto"}</div>
+      <Panel className={`mb-5 flex min-h-[300px] flex-col items-center justify-center px-5 py-10 text-center sm:min-h-[320px] ${fb.ok?"border-[#9aab8a]/25":"border-[#b08080]/30"}`}>
+        <div className={`mb-5 flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-full border-2 ${fb.ok?"border-[#9aab8a]/45 bg-[#9aab8a]/10 text-[#d0dcc4]":"border-[#b08080]/45 bg-[#8a5050]/12 text-[#edd4d4]"}`}>
+          {fb.ok?<FaCheck className="text-2xl"/>:<FaXmark className="text-2xl"/>}
+        </div>
+        <p className={`mb-1.5 text-[10px] font-medium uppercase tracking-[0.28em] ${fb.ok?"text-[#9aab8a]/75":"text-[#c9a6a6]/85"}`}>{fb.ok?"Bien hecho":"Intenta de nuevo"}</p>
+        <h3 className={`mb-8 text-2xl font-semibold tracking-tight ${fb.ok?"text-[#e8eee2]":"text-[#f0e4e4]"}`}>{fb.ok?"¡Correcto!":"Incorrecto"}</h3>
         {!fb.ok&&(
-          <div className="mb-3">
-            <div className="mb-1 text-xs text-zinc-400">Tu respuesta</div>
-            <div className="font-mono-ui mb-3 text-lg text-rose-300">{fb.userAns||"(vacío)"}</div>
-            <div className="mb-1 text-xs text-zinc-400">Correcto</div>
-            <div className="font-mono-ui text-2xl text-emerald-300">{fb.correctAns}</div>
-            <div className="mt-3 rounded-xl bg-black/35 p-3 text-left">
-              <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-violet-300">Consejo IA</div>
-              {aiFeedback?.loading&&<div className="text-sm text-zinc-400">Generando explicación...</div>}
-              {!aiFeedback?.loading&&aiFeedback?.error&&<div className="text-sm text-rose-300">{aiFeedback.error}</div>}
-              {!aiFeedback?.loading&&!aiFeedback?.error&&aiFeedback?.text&&<div className="text-sm leading-6 text-zinc-200">{aiFeedback.text}</div>}
-              {!aiFeedback?.loading&&!aiFeedback?.error&&!aiFeedback?.text&&<div className="text-sm text-zinc-400">Sin consejo disponible.</div>}
+          <div className="w-full max-w-sm text-left">
+            <div className="mb-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white/40">Tu respuesta</div>
+            <div className="font-mono-ui mb-4 rounded-lg border border-[#b08080]/25 bg-black/30 px-3 py-2.5 text-lg text-[#dcc8c8]">{fb.userAns||"(vacío)"}</div>
+            <div className="mb-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white/40">Correcto</div>
+            <div className="font-mono-ui mb-4 rounded-lg border border-[#9aab8a]/25 bg-black/30 px-3 py-2.5 text-xl text-[#d0dcc4]">{fb.correctAns}</div>
+            <div className="rounded-xl border border-white/[0.06] bg-black/35 p-3.5">
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#b5a88c]">Consejo IA</div>
+              {aiFeedback?.loading&&<div className="text-sm text-white/45">Generando explicación...</div>}
+              {!aiFeedback?.loading&&aiFeedback?.error&&<div className="text-sm text-[#c9a6a6]">{aiFeedback.error}</div>}
+              {!aiFeedback?.loading&&!aiFeedback?.error&&aiFeedback?.text&&<div className="text-sm leading-relaxed text-white/80">{aiFeedback.text}</div>}
+              {!aiFeedback?.loading&&!aiFeedback?.error&&!aiFeedback?.text&&<div className="text-sm text-white/45">Sin consejo disponible.</div>}
             </div>
           </div>
         )}
-        {fb.ok&&<div className="font-mono-ui mb-3 text-2xl text-emerald-300">{fb.correctAns}</div>}
+        {fb.ok&&(
+          <div className="w-full max-w-sm">
+            <p className="mb-2 text-center text-[11px] font-medium uppercase tracking-[0.2em] text-white/40">Respuesta</p>
+            <div className="font-mono-ui rounded-xl border border-[#9aab8a]/30 bg-black/40 px-6 py-5 text-center text-3xl tracking-tight text-[#d8e3cf]">{fb.correctAns}</div>
+          </div>
+        )}
         {fb.sentence&&(
-          <div className="mt-2 rounded-xl bg-black/35 px-4 py-3 text-sm italic leading-7 text-zinc-200">
+          <div className="mt-8 w-full max-w-sm rounded-xl border border-white/[0.06] bg-black/30 px-4 py-3.5 text-left text-sm italic leading-relaxed text-white/75">
             {fb.sentence.replace("___",`[${fb.correctAns}]`)}
           </div>
         )}
       </Panel>
-      <button className={`w-full rounded-xl px-4 py-3 text-sm font-bold transition ${fb.ok?"bg-emerald-300 text-zinc-950 hover:bg-emerald-200":"bg-amber-300 text-zinc-950 hover:bg-amber-200"}`} onClick={onAdvance}>
-        {qi+1<qs.length?"Continuar →":"Ver resultados 🏁"}
+      <button type="button" className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-semibold transition active:scale-[0.99] ${fb.ok?"bg-[#9aab8a] text-black hover:brightness-105":"bg-[#C69749] text-black hover:brightness-110"}`} onClick={onAdvance}>
+        {qi+1<qs.length?<><span>Continuar</span><FaArrowRight className="text-xs opacity-70" aria-hidden /></>:<><span>Ver resultados</span><FaArrowRight className="text-xs opacity-70" aria-hidden /></>}
       </button>
     </Shell>
   );
 
-  const typeCol=q.type==="blank"?"text-sky-300 border-sky-300/40 bg-sky-300/10":q.field==="p"?"text-amber-300 border-amber-300/40 bg-amber-300/10":"text-emerald-300 border-emerald-300/40 bg-emerald-300/10";
+  const typeCol=q.type==="blank"?"text-[#8a95a8] border-[#8a95a8]/35 bg-[#8a95a8]/10":q.field==="p"?"text-[#C69749] border-[#C69749]/35 bg-[#C69749]/10":"text-[#9aab8a] border-[#9aab8a]/35 bg-[#9aab8a]/10";
   const typeLbl=q.type==="blank"?"Frase en contexto":q.field==="p"?"Pasado Simple":"Participio Pasado";
   return(
     <Shell>
       <div className="mb-3 flex items-center justify-between">
-        <div className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-zinc-300">{qi+1} / {qs.length}</div>
-        <span className="inline-flex items-center gap-1 text-sm font-bold text-emerald-300">{correct} <FaCheck /></span>
+        <div className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-white/70">{qi+1} / {qs.length}</div>
+        <span className="inline-flex items-center gap-1 text-sm font-bold text-[#9aab8a]">{correct} <FaCheck /></span>
       </div>
       <Bar val={qi} max={qs.length}/>
       <div className={`mb-3 inline-flex items-center gap-1 rounded-md border px-3 py-1 text-xs font-bold ${typeCol}`}>{q.type==="blank"?<FaPenToSquare />:q.field==="p"?<FaReply />:<FaCircleCheck />}{typeLbl}</div>
       <Panel>
-        <h2 className="font-display mb-5 text-4xl leading-tight text-zinc-100">{q.q}</h2>
-        {q.type==="blank"&&<div className="mb-5 rounded-xl bg-black/35 px-4 py-3 text-[15px] italic leading-7 text-zinc-200">{q.sentence}</div>}
+        <h2 className="font-display mb-5 text-2xl leading-snug text-[#f4f2ee] sm:text-3xl">{q.q}</h2>
+        {q.type==="blank"&&<div className="mb-5 rounded-xl bg-black/35 px-4 py-3 text-[15px] italic leading-7 text-white/80">{q.sentence}</div>}
         {q.type==="mc"&&(
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/25">
             {q.opts.map((opt,idx)=>(
               <button key={opt} onClick={()=>onSubmit(q,opt)} className={`flex w-full items-center gap-3 px-4 py-4 text-left transition hover:bg-white/5 ${idx<q.opts.length-1?"border-b border-white/10":""}`}>
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-white/10 text-sm font-bold text-zinc-200">{String.fromCharCode(65+idx)}</span>
-                <span className="font-mono-ui text-2xl text-zinc-100">{opt}</span>
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-white/10 text-sm font-bold text-white/80">{String.fromCharCode(65+idx)}</span>
+                <span className="font-mono-ui text-2xl text-[#f4f2ee]">{opt}</span>
               </button>
             ))}
           </div>
@@ -555,8 +611,8 @@ function QuizScreen({qs,qi,answers,inputV,setInputV,fb,aiFeedback,onSubmit,onAdv
             <input autoFocus value={inputV} onChange={e=>setInputV(e.target.value)}
               onKeyDown={e=>e.key==="Enter"&&inputV.trim()&&onSubmit(q,inputV)}
               placeholder={q.type==="blank"?"Escribe la forma correcta...":"Escribe el participio..."}
-              className="font-mono-ui w-full rounded-xl border-b border-white/30 bg-transparent px-1 py-3 text-2xl text-zinc-100 placeholder:text-zinc-500"/>
-            <button className="mt-3 w-full rounded-xl bg-amber-300 px-4 py-3 text-sm font-bold text-zinc-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-40" disabled={!inputV.trim()} onClick={()=>onSubmit(q,inputV)}>Confirmar →</button>
+              className="font-mono-ui w-full rounded-xl border-b border-white/30 bg-transparent px-1 py-3 text-2xl text-[#f4f2ee] placeholder:text-white/30"/>
+            <button className="mt-3 w-full rounded-xl bg-[#C69749] px-4 py-3 text-sm font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40" disabled={!inputV.trim()} onClick={()=>onSubmit(q,inputV)}>Confirmar →</button>
           </div>
         )}
       </Panel>
@@ -574,56 +630,56 @@ function ResultsScreen({results,streak,saving,aiRecap,onHome,onStats}){
     <Shell>
       <div className="mb-5 pt-2 text-center">
         <div className="text-5xl">{em}</div>
-        <div className={`mt-2 text-3xl font-bold ${rc===C.green?"text-emerald-300":rc===C.amber?"text-amber-300":"text-rose-300"}`}>{lb}</div>
-        <div className="mt-1 text-4xl font-bold">{results.score}<span className="text-xl text-zinc-400">/{results.total}</span></div>
-        <div className="flex items-center justify-center gap-1 text-sm text-zinc-400">{pct}% de aciertos · Racha <FaFire /> {streak}</div>
-        {saving&&<div className="mt-2 flex items-center justify-center gap-1 text-xs text-zinc-400">Guardando en la nube... <FaCloud /></div>}
+        <div className={`mt-2 text-3xl font-bold ${rc===C.green?"text-[#9aab8a]":rc===C.amber?"text-[#C69749]":"text-[#c9a6a6]"}`}>{lb}</div>
+        <div className="mt-1 text-4xl font-bold">{results.score}<span className="text-xl text-white/45">/{results.total}</span></div>
+        <div className="flex items-center justify-center gap-1 text-sm text-white/45">{pct}% de aciertos · Racha <FaFire /> {streak}</div>
+        {saving&&<div className="mt-2 flex items-center justify-center gap-1 text-xs text-white/45">Guardando en la nube... <FaCloud /></div>}
       </div>
       <div className="mb-4 grid grid-cols-3 gap-2">
-        {[{l:"Fuertes",v:results.strong,c:"text-emerald-300",i:<FaDumbbell />},{l:"Repaso",v:results.reviewing,c:"text-amber-300",i:<FaRotate />},{l:"Débiles",v:results.weak,c:"text-rose-300",i:<FaTriangleExclamation />}].map(({l,v,c,i})=>(
+        {[{l:"Fuertes",v:results.strong,c:"text-[#9aab8a]",i:<FaDumbbell />},{l:"Repaso",v:results.reviewing,c:"text-[#C69749]",i:<FaRotate />},{l:"Débiles",v:results.weak,c:"text-[#c9a6a6]",i:<FaTriangleExclamation />}].map(({l,v,c,i})=>(
           <Panel key={l} className="rounded-2xl p-3 text-center">
             <div className={`text-2xl font-bold ${c}`}>{v}</div>
-            <div className="mt-1 flex items-center justify-center gap-1 text-[11px] text-zinc-400">{i}{l}</div>
+            <div className="mt-1 flex items-center justify-center gap-1 text-[11px] text-white/45">{i}{l}</div>
           </Panel>
         ))}
       </div>
       {results.corrects.length>0&&(
         <Panel className="mb-4">
-          <div className="mb-4 flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] text-rose-300"><FaXmark /> Correcciones</div>
+          <div className="mb-4 flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#c9a6a6]"><FaXmark /> Correcciones</div>
           {results.corrects.map((c,i)=>(
             <div key={i} className={`mb-3 pb-3 ${i<results.corrects.length-1?"border-b border-white/10":""}`}>
               <div className="mb-1 flex items-center justify-between">
-                <span className="font-mono-ui text-base text-zinc-100">{c.verb.b}</span>
-                <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold ${c.field==="p"?"border-amber-300/40 bg-amber-300/10 text-amber-300":"border-emerald-300/40 bg-emerald-300/10 text-emerald-300"}`}>{c.field==="p"?"PASADO":"PARTICIPIO"}</span>
+                <span className="font-mono-ui text-base text-[#f4f2ee]">{c.verb.b}</span>
+                <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold ${c.field==="p"?"border-[#C69749]/35 bg-[#C69749]/10 text-[#C69749]":"border-[#9aab8a]/35 bg-[#9aab8a]/10 text-[#9aab8a]"}`}>{c.field==="p"?"PASADO":"PARTICIPIO"}</span>
               </div>
-              <div className="text-sm text-rose-300">Tu respuesta: <span className="font-mono-ui">{c.userAns||"(vacío)"}</span></div>
-              <div className="text-sm text-emerald-300">Correcto: <span className="font-mono-ui">{c.correct}</span></div>
-              <div className="mt-1 inline-flex items-center gap-1 text-xs text-violet-300"><FaLanguage /> {c.verb.m}</div>
+              <div className="text-sm text-[#c9a6a6]">Tu respuesta: <span className="font-mono-ui">{c.userAns||"(vacío)"}</span></div>
+              <div className="text-sm text-[#9aab8a]">Correcto: <span className="font-mono-ui">{c.correct}</span></div>
+              <div className="mt-1 inline-flex items-center gap-1 text-xs text-[#b5a88c]"><FaLanguage /> {c.verb.m}</div>
             </div>
           ))}
         </Panel>
       )}
-      {results.corrects.length===0&&<Panel className="mb-4 text-center text-emerald-300"><span className="inline-flex items-center gap-1"><FaCheck /> ¡Sin errores! Todos los verbos avanzan de nivel.</span></Panel>}
+      {results.corrects.length===0&&<Panel className="mb-4 text-center text-[#9aab8a]"><span className="inline-flex items-center gap-1"><FaCheck /> ¡Sin errores! Todos los verbos avanzan de nivel.</span></Panel>}
       {aiRecap&&(
         <Panel className="mb-4">
-          <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-violet-300">Resumen IA</div>
-          {aiRecap.loading&&<div className="text-sm text-zinc-400">Analizando tus errores...</div>}
-          {!aiRecap.loading&&aiRecap.error&&<div className="text-sm text-rose-300">{aiRecap.error}</div>}
-          {!aiRecap.loading&&!aiRecap.error&&aiRecap.text&&<div className="text-sm leading-6 text-zinc-200">{aiRecap.text}</div>}
+          <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#b5a88c]">Resumen IA</div>
+          {aiRecap.loading&&<div className="text-sm text-white/45">Analizando tus errores...</div>}
+          {!aiRecap.loading&&aiRecap.error&&<div className="text-sm text-[#c9a6a6]">{aiRecap.error}</div>}
+          {!aiRecap.loading&&!aiRecap.error&&aiRecap.text&&<div className="text-sm leading-6 text-white/80">{aiRecap.text}</div>}
         </Panel>
       )}
       {results.errs.length>0&&(
         <Panel className="mb-4">
-          <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-zinc-400">Mañana repetirás</div>
+          <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-white/45">Mañana repetirás</div>
           {results.errs.map(v=>(
-            <div key={v.id} className="font-mono-ui mb-1 text-sm text-zinc-300">
-              <span className="text-rose-300">{v.b}</span> → {v.p} → <span className="text-emerald-300">{v.pp}</span>
+            <div key={v.id} className="font-mono-ui mb-1 text-sm text-white/70">
+              <span className="text-[#c9a6a6]">{v.b}</span> → {v.p} → <span className="text-[#9aab8a]">{v.pp}</span>
             </div>
           ))}
         </Panel>
       )}
-      <button className="w-full rounded-xl bg-amber-300 px-4 py-3 text-sm font-bold text-zinc-950 transition hover:bg-amber-200" onClick={onHome}>Volver al inicio</button>
-      <button className="mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-zinc-200 transition hover:bg-white/10" onClick={onStats}>Ver mi progreso completo</button>
+      <button className="w-full rounded-xl bg-[#C69749] px-4 py-3 text-sm font-semibold text-black transition hover:brightness-110" onClick={onHome}>Volver al inicio</button>
+      <button className="mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/10" onClick={onStats}>Ver mi progreso completo</button>
     </Shell>
   );
 }
@@ -644,36 +700,36 @@ function StatsScreen({progress,onBack,onReset}){
   return(
     <Shell>
       <div className="mb-4 flex items-center gap-3">
-        <button onClick={onBack} className="text-2xl text-zinc-400 transition hover:text-zinc-200"><FaArrowLeft /></button>
+        <button onClick={onBack} className="text-2xl text-white/45 transition hover:text-white/80"><FaArrowLeft /></button>
         <h2 className="text-2xl font-semibold">Mi progreso · {introduced}/100</h2>
       </div>
       <div className="mb-4 flex flex-wrap gap-2">
         {filters.map(({k,l})=>(
-          <button key={k} onClick={()=>setSfilt(k)} className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${sfilt===k?"border-amber-300 bg-amber-300 text-zinc-950":"border-white/15 bg-white/5 text-zinc-300 hover:bg-white/10"}`}>{l}</button>
+          <button key={k} onClick={()=>setSfilt(k)} className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${sfilt===k?"border-[#C69749] bg-[#C69749] text-black":"border-white/15 bg-white/5 text-white/70 hover:bg-white/10"}`}>{l}</button>
         ))}
       </div>
-      <div className="mb-2 text-xs text-zinc-400">{filtered.length} verbos</div>
+      <div className="mb-2 text-xs text-white/45">{filtered.length} verbos</div>
       {filtered.map(v=>{
         const p=progress[v.id],lv=p?.level||0;
-        const col=!p?.introduced?"bg-violet-300 text-violet-200 border-violet-300/40":lv>=4?"bg-emerald-300 text-emerald-200 border-emerald-300/40":lv<=1?"bg-rose-300 text-rose-200 border-rose-300/40":"bg-amber-300 text-amber-200 border-amber-300/40";
+        const col=!p?.introduced?"bg-[#735F32] text-[#d4ccb8] border-[#735F32]/40":lv>=4?"bg-[#9aab8a] text-[#eef1ea] border-[#9aab8a]/35":lv<=1?"bg-[#a07070] text-[#f0e0e0] border-[#b08080]/35":"bg-[#C69749] text-black border-[#C69749]/35";
         return(
           <Panel key={v.id} className="mb-2 rounded-2xl p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <div className={`h-2 w-2 rounded-full ${col.split(" ")[0]}`}/>
                 <span className="font-mono-ui text-sm">{v.b}</span>
-                <span className="font-mono-ui text-xs text-zinc-400">{v.p} · {v.pp}</span>
+                <span className="font-mono-ui text-xs text-white/45">{v.p} · {v.pp}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-violet-300">{v.m}</span>
-                {p?.introduced&&<span className="inline-flex items-center gap-2 text-[10px] text-zinc-400"><span className="inline-flex items-center gap-0.5"><FaCheck />{p.correct}</span><span className="inline-flex items-center gap-0.5"><FaXmark />{p.wrong}</span></span>}
+                <span className="text-xs text-[#b5a88c]">{v.m}</span>
+                {p?.introduced&&<span className="inline-flex items-center gap-2 text-[10px] text-white/45"><span className="inline-flex items-center gap-0.5"><FaCheck />{p.correct}</span><span className="inline-flex items-center gap-0.5"><FaXmark />{p.wrong}</span></span>}
                 <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold ${col}`}>Lv {p?.introduced?p.level:"—"}</span>
               </div>
             </div>
           </Panel>
         );
       })}
-      <button onClick={onReset} className="mt-4 w-full rounded-xl border border-rose-300/40 bg-rose-300/10 px-4 py-3 text-sm font-semibold text-rose-200 transition hover:bg-rose-300/20">🗑 Reiniciar mi progreso</button>
+      <button onClick={onReset} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[#b08080]/35 bg-[#8a5050]/12 px-4 py-3 text-sm font-medium text-[#dcc8c8] transition hover:bg-[#8a5050]/20"><FaTrash />Reiniciar mi progreso</button>
     </Shell>
   );
 }
