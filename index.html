@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VerbMaster 🚀</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.23.3/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { background: #07101f; color: #e2e8f0; font-family: 'DM Sans', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #07101f; }
+    ::-webkit-scrollbar-thumb { background: #1e3a5a; border-radius: 3px; }
+    button { -webkit-tap-highlight-color: transparent; }
+    input:focus { outline: none; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+// ── CONFIG — reemplaza con tu URL de Apps Script ─────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGFbfbVgufNwW0LgjlJblesBTVtmWBM-jHCYNQow0F3JZliGVUOx0Ffh21RCJW4jSz/exec';
+
+// ── VERBS ────────────────────────────────────────────────────────────────────
+const VERBS = [
+  {id:1,  b:"be",         p:"was/were",   pp:"been",       m:"ser/estar",        e:["She was late to the meeting.","I have been waiting for an hour."]},
+  {id:2,  b:"have",       p:"had",        pp:"had",        m:"tener",            e:["He had breakfast at 7 AM.","They have had enough of this noise."]},
+  {id:3,  b:"do",         p:"did",        pp:"done",       m:"hacer",            e:["She did her homework quickly.","The job has been done perfectly."]},
+  {id:4,  b:"say",        p:"said",       pp:"said",       m:"decir",            e:["He said he would be here at noon.","I have said everything I need to say."]},
+  {id:5,  b:"go",         p:"went",       pp:"gone",       m:"ir",               e:["They went to the beach yesterday.","She has gone to Paris for work."]},
+  {id:6,  b:"get",        p:"got",        pp:"gotten",     m:"obtener",          e:["I got your message this morning.","She has gotten better at speaking."]},
+  {id:7,  b:"make",       p:"made",       pp:"made",       m:"hacer/crear",      e:["He made a delicious dinner last night.","We have made great progress this week."]},
+  {id:8,  b:"know",       p:"knew",       pp:"known",      m:"saber",            e:["She knew the answer immediately.","I have known him for ten years."]},
+  {id:9,  b:"think",      p:"thought",    pp:"thought",    m:"pensar",           e:["I thought about you all day.","She has thought about changing careers."]},
+  {id:10, b:"take",       p:"took",       pp:"taken",      m:"tomar",            e:["He took the wrong train home.","That photo was taken last summer."]},
+  {id:11, b:"see",        p:"saw",        pp:"seen",       m:"ver",              e:["I saw a great movie last night.","Have you seen my keys anywhere?"]},
+  {id:12, b:"come",       p:"came",       pp:"come",       m:"venir",            e:["She came to the party very late.","He has come a long way this year."]},
+  {id:13, b:"give",       p:"gave",       pp:"given",      m:"dar",              e:["She gave me a beautiful gift yesterday.","He has given so much to the team."]},
+  {id:14, b:"find",       p:"found",      pp:"found",      m:"encontrar",        e:["I found my lost wallet under the sofa.","She has found a new apartment downtown."]},
+  {id:15, b:"tell",       p:"told",       pp:"told",       m:"contar/decir",     e:["He told me a very funny story.","I was told to wait here."]},
+  {id:16, b:"become",     p:"became",     pp:"become",     m:"convertirse en",   e:["She became a doctor last year.","He has become very confident lately."]},
+  {id:17, b:"show",       p:"showed",     pp:"shown",      m:"mostrar",          e:["He showed me his brand new phone.","The results have been shown clearly."]},
+  {id:18, b:"leave",      p:"left",       pp:"left",       m:"dejar / salir",    e:["They left early this morning.","She has left her old job behind."]},
+  {id:19, b:"feel",       p:"felt",       pp:"felt",       m:"sentir",           e:["I felt nervous before the exam.","She has felt much better lately."]},
+  {id:20, b:"bring",      p:"brought",    pp:"brought",    m:"traer",            e:["He brought flowers to the hospital.","I have brought everything we need."]},
+  {id:21, b:"begin",      p:"began",      pp:"begun",      m:"empezar",          e:["The movie began at eight o'clock.","The meeting has already begun."]},
+  {id:22, b:"keep",       p:"kept",       pp:"kept",       m:"mantener",         e:["She kept her promise to me.","He has kept the same job for years."]},
+  {id:23, b:"hold",       p:"held",       pp:"held",       m:"sostener",         e:["She held the baby gently in her arms.","The event was held downtown."]},
+  {id:24, b:"write",      p:"wrote",      pp:"written",    m:"escribir",         e:["He wrote her a very long letter.","This famous song was written in 1985."]},
+  {id:25, b:"stand",      p:"stood",      pp:"stood",      m:"estar de pie",     e:["We stood in line for an hour.","He has stood by her through everything."]},
+  {id:26, b:"hear",       p:"heard",      pp:"heard",      m:"oír",              e:["I heard a strange noise outside.","Have you heard the latest news?"]},
+  {id:27, b:"let",        p:"let",        pp:"let",        m:"permitir",         e:["She let him borrow her car today.","They have let us use their beach house."]},
+  {id:28, b:"mean",       p:"meant",      pp:"meant",      m:"significar",       e:["What did you mean by that comment?","I have never meant to hurt you."]},
+  {id:29, b:"set",        p:"set",        pp:"set",        m:"establecer",       e:["He set a new world record yesterday.","The goals have been set for next year."]},
+  {id:30, b:"meet",       p:"met",        pp:"met",        m:"conocer",          e:["I met my best friend in high school.","Have you met her new boyfriend?"]},
+  {id:31, b:"run",        p:"ran",        pp:"run",        m:"correr",           e:["She ran five miles this morning.","He has run the company for ten years."]},
+  {id:32, b:"pay",        p:"paid",       pp:"paid",       m:"pagar",            e:["I paid the bill at the restaurant.","She has paid off all her debts."]},
+  {id:33, b:"sit",        p:"sat",        pp:"sat",        m:"sentarse",         e:["We sat by the window to eat lunch.","She has sat in that chair all morning."]},
+  {id:34, b:"speak",      p:"spoke",      pp:"spoken",     m:"hablar",           e:["He spoke to the manager directly.","I have never spoken in front of a crowd."]},
+  {id:35, b:"lie",        p:"lay",        pp:"lain",       m:"acostarse",        e:["The cat lay in the sun all afternoon.","She had lain awake all night worrying."]},
+  {id:36, b:"lead",       p:"led",        pp:"led",        m:"liderar",          e:["She led the team to victory last year.","He has led many successful projects."]},
+  {id:37, b:"read",       p:"read",       pp:"read",       m:"leer",             e:["I read that whole book last summer.","She has read every novel he ever wrote."]},
+  {id:38, b:"grow",       p:"grew",       pp:"grown",      m:"crecer",           e:["The company grew rapidly last year.","He has grown so much as a person."]},
+  {id:39, b:"lose",       p:"lost",       pp:"lost",       m:"perder",           e:["They lost the game in overtime.","She has lost her phone again."]},
+  {id:40, b:"fall",       p:"fell",       pp:"fallen",     m:"caer",             e:["He fell off his bicycle yesterday.","Prices have fallen dramatically this month."]},
+  {id:41, b:"send",       p:"sent",       pp:"sent",       m:"enviar",           e:["She sent me a very long email.","The package was sent last Friday."]},
+  {id:42, b:"build",      p:"built",      pp:"built",      m:"construir",        e:["They built a beautiful new house last year.","This bridge was built in 1890."]},
+  {id:43, b:"understand", p:"understood", pp:"understood", m:"entender",         e:["I understood exactly what she meant.","Do you understand what I am saying?"]},
+  {id:44, b:"draw",       p:"drew",       pp:"drawn",      m:"dibujar",          e:["She drew a very beautiful portrait.","The curtains were drawn open by the maid."]},
+  {id:45, b:"break",      p:"broke",      pp:"broken",     m:"romper",           e:["He broke his arm playing soccer.","The window has been broken for weeks."]},
+  {id:46, b:"spend",      p:"spent",      pp:"spent",      m:"gastar / pasar",   e:["They spent the entire weekend camping.","She has spent all of her savings."]},
+  {id:47, b:"cut",        p:"cut",        pp:"cut",        m:"cortar",           e:["She cut the cake into eight equal pieces.","Costs have been cut significantly."]},
+  {id:48, b:"rise",       p:"rose",       pp:"risen",      m:"subir / elevarse", e:["The sun rose at six this morning.","Temperatures have risen all week."]},
+  {id:49, b:"drive",      p:"drove",      pp:"driven",     m:"conducir",         e:["He drove across the entire country.","She has driven this route many times."]},
+  {id:50, b:"buy",        p:"bought",     pp:"bought",     m:"comprar",          e:["I bought a new laptop yesterday.","Have you bought the concert tickets yet?"]},
+  {id:51, b:"wear",       p:"wore",       pp:"worn",       m:"usar (ropa)",      e:["She wore a stunning red dress to the party.","This old coat has been worn for years."]},
+  {id:52, b:"choose",     p:"chose",      pp:"chosen",     m:"elegir",           e:["He chose the blue one over the red.","The winner has already been chosen."]},
+  {id:53, b:"win",        p:"won",        pp:"won",        m:"ganar",            e:["Our team won the championship last night.","She has won three awards this year."]},
+  {id:54, b:"teach",      p:"taught",     pp:"taught",     m:"enseñar",          e:["He taught English for over twenty years.","She has taught me so much about life."]},
+  {id:55, b:"catch",      p:"caught",     pp:"caught",     m:"atrapar",          e:["I caught a bad cold last week.","The thief was caught by the police."]},
+  {id:56, b:"throw",      p:"threw",      pp:"thrown",     m:"lanzar",           e:["She threw the ball very far.","All the old papers were thrown away."]},
+  {id:57, b:"sell",       p:"sold",       pp:"sold",       m:"vender",           e:["They sold their house last month.","The tickets were sold out in minutes."]},
+  {id:58, b:"forget",     p:"forgot",     pp:"forgotten",  m:"olvidar",          e:["I forgot my wallet at home again.","She has completely forgotten the password."]},
+  {id:59, b:"lend",       p:"lent",       pp:"lent",       m:"prestar",          e:["She kindly lent me her umbrella.","I have never lent money to anyone."]},
+  {id:60, b:"sleep",      p:"slept",      pp:"slept",      m:"dormir",           e:["He slept right through his alarm.","I have not slept well all week long."]},
+  {id:61, b:"drink",      p:"drank",      pp:"drunk",      m:"beber",            e:["She drank two glasses of cold water.","He has drunk too much coffee today."]},
+  {id:62, b:"eat",        p:"ate",        pp:"eaten",      m:"comer",            e:["We ate dinner at a fantastic new restaurant.","Have you eaten breakfast yet today?"]},
+  {id:63, b:"sing",       p:"sang",       pp:"sung",       m:"cantar",           e:["She sang beautifully at the concert.","That song has been sung by millions worldwide."]},
+  {id:64, b:"swim",       p:"swam",       pp:"swum",       m:"nadar",            e:["He swam all the way across the lake.","She has swum competitively for many years."]},
+  {id:65, b:"fly",        p:"flew",       pp:"flown",      m:"volar",            e:["They flew to London last night.","She has flown over one hundred thousand miles."]},
+  {id:66, b:"shake",      p:"shook",      pp:"shaken",     m:"sacudir",          e:["She shook his hand very firmly.","His confidence was deeply shaken by the news."]},
+  {id:67, b:"steal",      p:"stole",      pp:"stolen",     m:"robar",            e:["Someone stole my bicycle from outside.","The painting was stolen from the museum."]},
+  {id:68, b:"ring",       p:"rang",       pp:"rung",       m:"sonar",            e:["The phone rang exactly three times.","The bell has rung — class is finally over."]},
+  {id:69, b:"hide",       p:"hid",        pp:"hidden",     m:"esconder",         e:["The children hid behind the old sofa.","The spare key was hidden under the mat."]},
+  {id:70, b:"bite",       p:"bit",        pp:"bitten",     m:"morder",           e:["The large dog bit the postman's leg.","She was bitten by a mosquito last night."]},
+  {id:71, b:"blow",       p:"blew",       pp:"blown",      m:"soplar",           e:["A strong wind blew all through the night.","The old fuse has been blown again."]},
+  {id:72, b:"stick",      p:"stuck",      pp:"stuck",      m:"pegar / atascar",  e:["She stuck a reminder note on the fridge.","The drawer is completely stuck again."]},
+  {id:73, b:"fight",      p:"fought",     pp:"fought",     m:"pelear / luchar",  e:["They fought over the TV remote control.","He has fought for justice his whole life."]},
+  {id:74, b:"deal",       p:"dealt",      pp:"dealt",      m:"tratar / repartir",e:["She dealt with the big problem calmly.","I have dealt with far worse situations before."]},
+  {id:75, b:"dig",        p:"dug",        pp:"dug",        m:"cavar",            e:["The dog dug a deep hole in the garden.","They have dug up some fascinating artifacts."]},
+  {id:76, b:"hang",       p:"hung",       pp:"hung",       m:"colgar",           e:["She hung the large painting on the wall.","The coat has been hung by the front door."]},
+  {id:77, b:"shine",      p:"shone",      pp:"shone",      m:"brillar",          e:["The morning sun shone brightly all day.","Her eyes shone with pure excitement."]},
+  {id:78, b:"shoot",      p:"shot",       pp:"shot",       m:"disparar",         e:["He shot the basketball into the net perfectly.","The entire film was shot in New Zealand."]},
+  {id:79, b:"split",      p:"split",      pp:"split",      m:"dividir",          e:["They split the restaurant bill evenly.","The group has split into two different teams."]},
+  {id:80, b:"spread",     p:"spread",     pp:"spread",     m:"esparcir",         e:["She spread butter on the warm toast.","The breaking news spread quickly online."]},
+  {id:81, b:"quit",       p:"quit",       pp:"quit",       m:"dejar / renunciar",e:["He quit his stressful job last Friday.","She has finally quit smoking after years."]},
+  {id:82, b:"fit",        p:"fit",        pp:"fit",        m:"encajar",          e:["These new shoes do not fit me at all.","The spare key fit the old lock perfectly."]},
+  {id:83, b:"hit",        p:"hit",        pp:"hit",        m:"golpear",          e:["The baseball hit the window with force.","Sales have hit a remarkable all-time high."]},
+  {id:84, b:"hurt",       p:"hurt",       pp:"hurt",       m:"herir / doler",    e:["I seriously hurt my knee while running.","Her harsh words really hurt my feelings."]},
+  {id:85, b:"cost",       p:"cost",       pp:"cost",       m:"costar",           e:["The repairs cost much more than expected.","It has cost us a lot of valuable time."]},
+  {id:86, b:"burst",      p:"burst",      pp:"burst",      m:"estallar",         e:["The old pipe burst during winter.","The entire stadium burst into loud applause."]},
+  {id:87, b:"bend",       p:"bent",       pp:"bent",       m:"doblar",           e:["She bent down to pick up the coin.","The metal pole has been bent out of shape."]},
+  {id:88, b:"weep",       p:"wept",       pp:"wept",       m:"llorar",           e:["She wept at the very end of the film.","He has wept tears of absolute joy."]},
+  {id:89, b:"kneel",      p:"knelt",      pp:"knelt",      m:"arrodillarse",     e:["He knelt down on one knee to propose.","She knelt beside the injured animal."]},
+  {id:90, b:"light",      p:"lit",        pp:"lit",        m:"encender",         e:["She carefully lit the candles for dinner.","The whole room was lit by a single lamp."]},
+  {id:91, b:"awake",      p:"awoke",      pp:"awoken",     m:"despertar",        e:["He awoke suddenly to the sound of rain.","She has awoken with so much more energy lately."]},
+  {id:92, b:"bear",       p:"bore",       pp:"borne",      m:"soportar",         e:["She bore the intense pain with great courage.","He has borne a lot of responsibility alone."]},
+  {id:93, b:"beat",       p:"beat",       pp:"beaten",     m:"vencer / golpear", e:["Our team beat them three goals to zero.","She has beaten her personal best record."]},
+  {id:94, b:"behold",     p:"beheld",     pp:"beheld",     m:"contemplar",       e:["They beheld a truly magnificent sunset.","He beheld the ancient ruins in complete awe."]},
+  {id:95, b:"breed",      p:"bred",       pp:"bred",       m:"criar",            e:["They breed champion horses on their farm.","These loyal dogs were bred for hunting."]},
+  {id:96, b:"cling",      p:"clung",      pp:"clung",      m:"aferrarse",        e:["The frightened child clung to her mother.","She has always clung to her deep beliefs."]},
+  {id:97, b:"creep",      p:"crept",      pp:"crept",      m:"arrastrarse",      e:["The cat crept silently across the dark floor.","Serious doubt has crept into his mind."]},
+  {id:98, b:"feed",       p:"fed",        pp:"fed",        m:"alimentar",        e:["She fed the ducks at the peaceful park.","The baby has been fed and is now sleeping."]},
+  {id:99, b:"flee",       p:"fled",       pp:"fled",       m:"huir",             e:["They fled the country during the long war.","The main suspect has fled the scene."]},
+  {id:100,b:"forbid",     p:"forbade",    pp:"forbidden",  m:"prohibir",         e:["The strict teacher forbade phones in class.","Smoking is strictly forbidden in this building."]},
+];
+
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+const INTERVALS=[1,1,2,4,7,14], NEW_PER_DAY=7, REV_PER_DAY=3;
+
+// ── COLORS ────────────────────────────────────────────────────────────────────
+const C={bg:"#07101f",card:"#0e1a2e",border:"#1e3a5a",amber:"#f59e0b",green:"#34d399",red:"#f87171",violet:"#a78bfa",blue:"#60a5fa",textPri:"#e2e8f0",textSec:"#64748b",textMut:"#1e3a5a"};
+const mono={fontFamily:"'JetBrains Mono',monospace",fontWeight:700};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function defP(){return{level:0,nextDay:1,errorStreak:0,correct:0,wrong:0,introduced:false};}
+function getMCOpts(correct,field){return shuffle([correct,...shuffle(VERBS.filter(v=>v[field]!==correct)).slice(0,3).map(v=>v[field])]);}
+function makeBlank(sentence,form){
+  const variants=form.includes("/")?form.split("/"):[form];
+  for(const f of variants){const rx=new RegExp(`\\b${f}\\b`,"i");if(rx.test(sentence)){const m=sentence.match(rx)[0];return{blanked:sentence.replace(rx,"___"),answer:m};}}
+  return null;
+}
+function buildQuiz(sv){
+  const pool=[];
+  sv.forEach(v=>{
+    pool.push({id:`${v.id}-p`,vid:v.id,field:"p",type:"mc",q:`¿Cuál es el PASADO de "${v.b}"?`,correct:v.p,opts:getMCOpts(v.p,"p")});
+    pool.push({id:`${v.id}-pp`,vid:v.id,field:"pp",type:"input",q:`Escribe el PARTICIPIO de "${v.b}":`,correct:v.pp});
+    const b1=makeBlank(v.e[0],v.p);
+    if(b1)pool.push({id:`${v.id}-bs`,vid:v.id,field:"p",type:"blank",q:`Completa con "${v.b}" (pasado):`,sentence:b1.blanked,correct:b1.answer});
+    const b2=makeBlank(v.e[1],v.pp);
+    if(b2)pool.push({id:`${v.id}-bpp`,vid:v.id,field:"pp",type:"blank",q:`Completa con "${v.b}" (participio):`,sentence:b2.blanked,correct:b2.answer});
+  });
+  return shuffle(pool).slice(0,12);
+}
+function buildSession(prog,day){
+  const due=shuffle(VERBS.filter(v=>prog[v.id]?.introduced&&prog[v.id].nextDay<=day)).slice(0,REV_PER_DAY);
+  const fresh=VERBS.filter(v=>!prog[v.id]?.introduced).slice(0,NEW_PER_DAY);
+  return shuffle([...due,...fresh]);
+}
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function apiCall(body){
+  if(SCRIPT_URL==='REEMPLAZA_CON_TU_URL_DE_APPS_SCRIPT') throw new Error('⚙️ SCRIPT_URL no configurado. Ver README.');
+  const res=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data=await res.json();
+  if(data.error) throw new Error(data.error);
+  return data;
+}
+
+// ── STYLES ────────────────────────────────────────────────────────────────────
+const S={
+  root:{minHeight:"100vh",background:C.bg,color:C.textPri,paddingBottom:48},
+  wrap:{maxWidth:520,margin:"0 auto",padding:"0 20px"},
+  card:{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:"22px 24px",marginBottom:14},
+  btn:(col=C.amber,mt=0)=>({background:col,color:col===C.green||col===C.amber?"#000":"#fff",border:"none",borderRadius:10,padding:"13px 24px",fontWeight:700,fontSize:15,cursor:"pointer",width:"100%",fontFamily:"'DM Sans',sans-serif",marginTop:mt,display:"block"}),
+  ghost:(mt=10,col=C.textSec)=>({background:"transparent",color:col,border:`1px solid ${col==="red"?C.red:C.border}`,borderRadius:10,padding:"11px 24px",fontWeight:600,fontSize:14,cursor:"pointer",width:"100%",fontFamily:"'DM Sans',sans-serif",marginTop:mt}),
+  tag:(col)=>({display:"inline-block",background:col+"22",color:col,border:`1px solid ${col}44`,borderRadius:6,padding:"3px 10px",fontSize:12,fontWeight:700,marginBottom:12}),
+  input:{width:"100%",boxSizing:"border-box",background:"#040d1a",border:`1.5px solid ${C.border}`,borderRadius:10,padding:"13px 16px",color:"#e2e8f0",fontSize:16,...mono,fontFamily:"'JetBrains Mono',monospace"},
+};
+
+function Bar({val,max,col=C.amber}){
+  return <div style={{background:C.textMut,borderRadius:4,height:5,marginBottom:24,overflow:"hidden"}}>
+    <div style={{background:col,height:"100%",width:`${max?Math.round((val/max)*100):0}%`,borderRadius:4,transition:"width .4s"}}/>
+  </div>;
+}
+function Spinner(){return <div style={{textAlign:"center",padding:"60px 0",color:C.textSec,fontSize:14}}>Cargando...</div>;}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  LOGIN / REGISTER
+// ══════════════════════════════════════════════════════════════════════════════
+function LoginScreen({onLogin}){
+  const [mode,setMode]=useState("login");
+  const [username,setUsername]=useState("");
+  const [pin,setPin]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [err,setErr]=useState("");
+
+  async function submit(){
+    setErr(""); setLoading(true);
+    try{
+      const data=await apiCall({action:mode,username:username.trim(),pin:pin.trim()});
+      localStorage.setItem("vm_username",username.trim().toLowerCase());
+      localStorage.setItem("vm_pin",pin.trim());
+      onLogin(data);
+    }catch(e){setErr(e.message);}
+    setLoading(false);
+  }
+
+  return(
+    <div style={S.root}>
+      <div style={S.wrap}>
+        <div style={{paddingTop:60,textAlign:"center",marginBottom:40}}>
+          <div style={{fontSize:48,marginBottom:12}}>📚</div>
+          <h1 style={{fontSize:28,fontWeight:700,margin:"0 0 6px"}}>VerbMaster</h1>
+          <p style={{color:C.textSec,fontSize:14}}>Sistema de verbos irregulares en inglés</p>
+        </div>
+
+        <div style={S.card}>
+          <div style={{display:"flex",gap:8,marginBottom:24}}>
+            {["login","register"].map(m=>(
+              <button key={m} onClick={()=>{setMode(m);setErr("");}} style={{
+                flex:1,padding:"10px",borderRadius:8,border:`1px solid ${mode===m?C.amber:C.border}`,
+                background:mode===m?C.amber+"22":"transparent",color:mode===m?C.amber:C.textSec,
+                fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"
+              }}>{m==="login"?"Entrar":"Crear cuenta"}</button>
+            ))}
+          </div>
+
+          <div style={{marginBottom:14}}>
+            <label style={{fontSize:12,color:C.textSec,letterSpacing:2,textTransform:"uppercase",display:"block",marginBottom:6}}>Usuario</label>
+            <input style={S.input} value={username} onChange={e=>setUsername(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&pin&&submit()}
+              placeholder="tu_nombre" autoCapitalize="none" autoCorrect="off" />
+          </div>
+
+          <div style={{marginBottom:20}}>
+            <label style={{fontSize:12,color:C.textSec,letterSpacing:2,textTransform:"uppercase",display:"block",marginBottom:6}}>PIN (4 dígitos)</label>
+            <input style={S.input} type="password" inputMode="numeric" maxLength={4}
+              value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,"").slice(0,4))}
+              onKeyDown={e=>e.key==="Enter"&&username&&submit()}
+              placeholder="••••" />
+          </div>
+
+          {err&&<div style={{background:C.red+"22",border:`1px solid ${C.red}44`,borderRadius:8,padding:"10px 14px",fontSize:13,color:C.red,marginBottom:16}}>{err}</div>}
+
+          <button style={S.btn()} onClick={submit} disabled={!username.trim()||pin.length!==4||loading}>
+            {loading?"Conectando...":(mode==="login"?"Entrar →":"Crear cuenta →")}
+          </button>
+        </div>
+
+        <p style={{textAlign:"center",fontSize:12,color:C.textMut,marginTop:16}}>
+          Tu progreso se guarda en la nube ☁️
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  HOME
+// ══════════════════════════════════════════════════════════════════════════════
+function HomeScreen({user,progress,history,onStart,onLogout,onStats,onLeaderboard}){
+  const introduced=VERBS.filter(v=>progress[v.id]?.introduced).length;
+  const strongCt=VERBS.filter(v=>(progress[v.id]?.level||0)>=4).length;
+  const dueCt=VERBS.filter(v=>progress[v.id]?.introduced&&progress[v.id].nextDay<=user.dayNumber).length;
+  const pct=Math.round((introduced/100)*100);
+  const last7=(history||[]).slice(-7);
+
+  return(
+    <div style={S.root}>
+      <div style={S.wrap}>
+        <div style={{paddingTop:32,paddingBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:11,letterSpacing:4,color:C.amber,fontWeight:700,textTransform:"uppercase"}}>VerbMaster</div>
+            <h2 style={{fontSize:20,fontWeight:700,margin:"2px 0 0"}}>Hola, {user.username} 👋</h2>
+          </div>
+          <button onClick={onLogout} style={{background:"none",border:`1px solid ${C.border}`,borderRadius:8,padding:"7px 12px",color:C.textSec,cursor:"pointer",fontSize:12,fontFamily:"inherit"}}>Salir</button>
+        </div>
+
+        <div style={{...S.card,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:10,color:C.textSec,marginBottom:4,letterSpacing:2,textTransform:"uppercase"}}>Progreso global</div>
+            <div style={{fontSize:34,fontWeight:700,color:C.amber,lineHeight:1}}>{pct}%</div>
+            <div style={{fontSize:12,color:C.textSec,marginTop:2}}>{introduced}/100 verbos · Día {user.dayNumber}</div>
+          </div>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontSize:32}}>🔥</div>
+            <div style={{fontSize:26,fontWeight:700,color:C.amber,lineHeight:1.1}}>{user.streak}</div>
+            <div style={{fontSize:11,color:C.textSec}}>días seguidos</div>
+          </div>
+        </div>
+        <Bar val={introduced} max={100}/>
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
+          {[{l:"💪 Fuertes",v:strongCt,c:C.green},{l:"🔄 Repasos",v:dueCt,c:C.amber},{l:"📚 Sin ver",v:100-introduced,c:C.violet}].map(({l,v,c})=>(
+            <div key={l} style={{...S.card,textAlign:"center",padding:"14px 8px",marginBottom:0}}>
+              <div style={{fontSize:22,fontWeight:700,color:c}}>{v}</div>
+              <div style={{fontSize:11,color:C.textSec,marginTop:3}}>{l}</div>
+            </div>
+          ))}
+        </div>
+
+        {last7.length>0&&(
+          <div style={{...S.card,marginBottom:14}}>
+            <div style={{fontSize:10,color:C.textSec,letterSpacing:2,textTransform:"uppercase",marginBottom:12}}>Últimas sesiones</div>
+            <div style={{display:"flex",alignItems:"flex-end",gap:6,height:52}}>
+              {last7.map((h,i)=>(
+                <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+                  <div style={{width:"100%",background:h.pct>=80?C.green:h.pct>=60?C.amber:C.red,borderRadius:3,height:`${Math.max(4,Math.round((h.pct/100)*46))}px`}}/>
+                  <div style={{fontSize:9,color:C.textSec}}>{h.pct}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{...S.card,fontSize:13,color:C.textSec,marginBottom:20}}>
+          <span style={{color:C.violet,fontWeight:600}}>📚 {Math.min(NEW_PER_DAY,100-introduced)} nuevos</span>
+          {"  ·  "}
+          <span style={{color:C.amber,fontWeight:600}}>🔄 {Math.min(dueCt,REV_PER_DAY)} repasos</span>
+        </div>
+
+        <button style={S.btn()} onClick={onStart}>🚀 Comenzar sesión</button>
+        <button style={S.ghost()} onClick={onLeaderboard}>🏆 Clasificación de amigos</button>
+        <button style={S.ghost(6)} onClick={onStats}>📊 Mi progreso completo</button>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  LEADERBOARD
+// ══════════════════════════════════════════════════════════════════════════════
+function LeaderboardScreen({currentUser,onBack}){
+  const [leaders,setLeaders]=useState(null);
+  const [err,setErr]=useState("");
+
+  useEffect(()=>{
+    apiCall({action:"leaderboard"}).then(d=>setLeaders(d.leaders)).catch(e=>setErr(e.message));
+  },[]);
+
+  const medals=["🥇","🥈","🥉"];
+
+  return(
+    <div style={S.root}>
+      <div style={S.wrap}>
+        <div style={{paddingTop:32,paddingBottom:20,display:"flex",alignItems:"center",gap:14}}>
+          <button onClick={onBack} style={{background:"none",border:"none",color:C.textSec,cursor:"pointer",fontSize:22}}>←</button>
+          <h2 style={{margin:0,fontSize:20,fontWeight:700}}>🏆 Clasificación</h2>
+        </div>
+
+        {!leaders&&!err&&<Spinner/>}
+        {err&&<div style={{...S.card,color:C.red}}>{err}</div>}
+
+        {leaders&&leaders.map((l,i)=>{
+          const isMe=l.username===currentUser;
+          return(
+            <div key={l.username} style={{...S.card,marginBottom:10,border:`1px solid ${isMe?C.amber:C.border}`,padding:"16px 20px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:14}}>
+                <div style={{fontSize:24,minWidth:32,textAlign:"center"}}>{medals[i]||`#${i+1}`}</div>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                    <span style={{fontWeight:700,fontSize:16,color:isMe?C.amber:C.textPri}}>{l.username}</span>
+                    {isMe&&<span style={{...S.tag(C.amber),marginBottom:0,fontSize:10}}>TÚ</span>}
+                  </div>
+                  <div style={{display:"flex",gap:16,fontSize:12,color:C.textSec}}>
+                    <span style={{color:C.green,fontWeight:600}}>💪 {l.mastered} dominados</span>
+                    <span>📚 {l.introduced} vistos</span>
+                    <span>🔥 {l.streak} días</span>
+                  </div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontSize:20,fontWeight:700,color:C.amber}}>{Math.round((l.mastered/100)*100)}%</div>
+                  <div style={{fontSize:10,color:C.textSec}}>dominados</div>
+                </div>
+              </div>
+              <div style={{marginTop:10}}>
+                <div style={{background:C.textMut,borderRadius:3,height:4,overflow:"hidden"}}>
+                  <div style={{background:C.amber,height:"100%",width:`${Math.round((l.mastered/100)*100)}%`,borderRadius:3}}/>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {leaders&&leaders.length===0&&<div style={{...S.card,textAlign:"center",color:C.textSec}}>Nadie aquí todavía. ¡Sé el primero!</div>}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  STUDY
+// ══════════════════════════════════════════════════════════════════════════════
+function StudyScreen({session,si,onNext,onExit,progress}){
+  const v=session[si];
+  if(!v)return null;
+  const p=progress[v.id],lv=p?.level||0;
+  const col=!p?.introduced?C.violet:lv>=4?C.green:lv<=1?C.red:C.amber;
+  const lbl=!p?.introduced?"✦ Nuevo":lv>=4?"💪 Dominado":lv<=1?"⚠ Débil":"🔄 Repasando";
+  return(
+    <div style={S.root}>
+      <div style={S.wrap}>
+        <div style={{paddingTop:32}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+            <span style={{fontSize:13,color:C.textSec}}>Estudio — {si+1}/{session.length}</span>
+            <button onClick={onExit} style={{background:"none",border:"none",color:C.textSec,cursor:"pointer",fontSize:20}}>✕</button>
+          </div>
+          <Bar val={si} max={session.length}/>
+          <div style={S.tag(col)}>{lbl}</div>
+          <div style={{...S.card,textAlign:"center",padding:"28px 20px"}}>
+            <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:10,flexWrap:"wrap",marginBottom:16}}>
+              {[{form:v.b,label:"BASE",fc:C.textPri},{form:v.p,label:"PASADO",fc:C.amber},{form:v.pp,label:"PARTICIPIO",fc:C.green}].map(({form,label,fc},i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:10}}>
+                  {i>0&&<span style={{color:C.textMut,fontSize:18}}>→</span>}
+                  <div style={{textAlign:"center"}}>
+                    <div style={{fontSize:10,color:C.textSec,letterSpacing:2,textTransform:"uppercase",marginBottom:3}}>{label}</div>
+                    <div style={{...mono,fontSize:i===0?24:18,color:fc}}>{form}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{fontSize:14,color:C.violet,fontWeight:600,marginBottom:20}}>🇪🇸 {v.m}</div>
+            <div style={{borderTop:`1px solid ${C.border}`,paddingTop:18}}>
+              <div style={{fontSize:10,color:C.textSec,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>Ejemplos en contexto</div>
+              {v.e.map((ex,i)=>(
+                <div key={i} style={{background:"#040d1a",borderRadius:10,padding:"12px 14px",marginBottom:8,textAlign:"left"}}>
+                  <span style={{color:i===0?C.amber:C.green,fontSize:10,fontWeight:700,marginRight:8}}>{i===0?"PASADO":"PARTICIPIO"}</span>
+                  <span style={{fontSize:14,color:"#e2e8f0",fontStyle:"italic"}}>{ex}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <button style={S.btn()} onClick={onNext}>{si+1<session.length?"Siguiente →":"¡Al quiz! 🎯"}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  QUIZ
+// ══════════════════════════════════════════════════════════════════════════════
+function QuizScreen({qs,qi,answers,inputV,setInputV,fb,onSubmit,onAdvance}){
+  const q=qs[qi];
+  if(!q)return null;
+  const correct=Object.values(answers).filter(a=>a.ok).length;
+
+  if(fb)return(
+    <div style={S.root}>
+      <div style={S.wrap}>
+        <div style={{paddingTop:32}}>
+          <Bar val={qi} max={qs.length}/>
+          <div style={{...S.card,textAlign:"center",padding:"32px 24px",borderColor:fb.ok?C.green:C.red}}>
+            <div style={{fontSize:48,marginBottom:10}}>{fb.ok?"✓":"✗"}</div>
+            <div style={{fontSize:22,fontWeight:700,color:fb.ok?C.green:C.red,marginBottom:14}}>{fb.ok?"¡Correcto!":"Incorrecto"}</div>
+            {!fb.ok&&(
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:12,color:C.textSec,marginBottom:4}}>Tu respuesta</div>
+                <div style={{...mono,fontSize:17,color:C.red,marginBottom:10}}>{fb.userAns||"(vacío)"}</div>
+                <div style={{fontSize:12,color:C.textSec,marginBottom:4}}>Correcto</div>
+                <div style={{...mono,fontSize:22,color:C.green}}>{fb.correctAns}</div>
+              </div>
+            )}
+            {fb.ok&&<div style={{...mono,fontSize:22,color:C.green,marginBottom:14}}>{fb.correctAns}</div>}
+            {fb.sentence&&(
+              <div style={{background:"#040d1a",borderRadius:10,padding:"12px 14px",marginTop:10,fontSize:14,color:"#e2e8f0",fontStyle:"italic",lineHeight:1.6}}>
+                {fb.sentence.replace("___",`[${fb.correctAns}]`)}
+              </div>
+            )}
+          </div>
+          <button style={S.btn(fb.ok?C.green:C.amber)} onClick={onAdvance}>
+            {qi+1<qs.length?"Continuar →":"Ver resultados 🏁"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const typeCol=q.type==="blank"?C.blue:q.field==="p"?C.amber:C.green;
+  const typeLbl=q.type==="blank"?"✏️ Frase en contexto":q.field==="p"?"⏪ Pasado Simple":"✅ Participio Pasado";
+  return(
+    <div style={S.root}>
+      <div style={S.wrap}>
+        <div style={{paddingTop:32}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+            <span style={{fontSize:13,color:C.textSec}}>Quiz — {qi+1}/{qs.length}</span>
+            <span style={{fontSize:13,color:C.green,fontWeight:700}}>{correct} ✓</span>
+          </div>
+          <Bar val={qi} max={qs.length}/>
+          <div style={S.tag(typeCol)}>{typeLbl}</div>
+          <div style={S.card}>
+            <h2 style={{fontSize:18,fontWeight:700,color:"#e2e8f0",marginBottom:q.type==="blank"?10:20,lineHeight:1.3}}>{q.q}</h2>
+            {q.type==="blank"&&<div style={{background:"#040d1a",borderRadius:10,padding:"14px 16px",marginBottom:18,fontSize:15,color:"#e2e8f0",fontStyle:"italic",lineHeight:1.7}}>{q.sentence}</div>}
+            {q.type==="mc"&&(
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                {q.opts.map(opt=>(
+                  <button key={opt} onClick={()=>onSubmit(q,opt)} style={{background:C.card,border:`1.5px solid ${C.border}`,borderRadius:10,padding:"13px 8px",cursor:"pointer",color:"#e2e8f0",...mono,fontSize:14,textAlign:"center",fontFamily:"'JetBrains Mono',monospace"}}>{opt}</button>
+                ))}
+              </div>
+            )}
+            {(q.type==="input"||q.type==="blank")&&(
+              <div>
+                <input autoFocus value={inputV} onChange={e=>setInputV(e.target.value)}
+                  onKeyDown={e=>e.key==="Enter"&&inputV.trim()&&onSubmit(q,inputV)}
+                  placeholder={q.type==="blank"?"Escribe la forma correcta...":"Escribe el participio..."}
+                  style={S.input}/>
+                <button style={{...S.btn(C.amber,12),opacity:inputV.trim()?1:0.4}} disabled={!inputV.trim()} onClick={()=>onSubmit(q,inputV)}>Confirmar →</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  RESULTS
+// ══════════════════════════════════════════════════════════════════════════════
+function ResultsScreen({results,streak,saving,onHome,onStats}){
+  const pct=Math.round((results.score/results.total)*100);
+  const[em,lb,rc]=pct>=90?["🏆","¡Perfecto!",C.green]:pct>=70?["👍","¡Buen trabajo!",C.amber]:["💪","Sigue practicando",C.red];
+  return(
+    <div style={S.root}>
+      <div style={S.wrap}>
+        <div style={{paddingTop:40,textAlign:"center",marginBottom:24}}>
+          <div style={{fontSize:52}}>{em}</div>
+          <div style={{fontSize:24,fontWeight:700,color:rc,marginTop:6}}>{lb}</div>
+          <div style={{fontSize:40,fontWeight:700,marginTop:4}}>{results.score}<span style={{fontSize:18,color:C.textSec}}>/{results.total}</span></div>
+          <div style={{fontSize:13,color:C.textSec}}>{pct}% de aciertos · Racha 🔥 {streak}</div>
+          {saving&&<div style={{fontSize:12,color:C.textSec,marginTop:8}}>Guardando en la nube... ☁️</div>}
+        </div>
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
+          {[{l:"💪 Fuertes",v:results.strong,c:C.green},{l:"🔄 Repaso",v:results.reviewing,c:C.amber},{l:"⚠ Débiles",v:results.weak,c:C.red}].map(({l,v,c})=>(
+            <div key={l} style={{...S.card,textAlign:"center",padding:"14px 8px",marginBottom:0}}>
+              <div style={{fontSize:22,fontWeight:700,color:c}}>{v}</div>
+              <div style={{fontSize:11,color:C.textSec,marginTop:3}}>{l}</div>
+            </div>
+          ))}
+        </div>
+
+        {results.corrects.length>0&&(
+          <div style={{...S.card,marginBottom:16}}>
+            <div style={{fontSize:10,color:C.red,letterSpacing:2,textTransform:"uppercase",fontWeight:700,marginBottom:14}}>✗ Correcciones</div>
+            {results.corrects.map((c,i)=>(
+              <div key={i} style={{paddingBottom:12,marginBottom:12,borderBottom:i<results.corrects.length-1?`1px solid ${C.border}`:"none"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <span style={{...mono,color:"#e2e8f0",fontSize:15}}>{c.verb.b}</span>
+                  <span style={{...S.tag(c.field==="p"?C.amber:C.green),marginBottom:0,fontSize:10}}>{c.field==="p"?"PASADO":"PARTICIPIO"}</span>
+                </div>
+                <div style={{fontSize:13,color:C.red,marginBottom:3}}>Tu respuesta: <span style={mono}>{c.userAns||"(vacío)"}</span></div>
+                <div style={{fontSize:13,color:C.green}}>Correcto: <span style={mono}>{c.correct}</span></div>
+                <div style={{fontSize:11,color:C.violet,marginTop:4}}>🇪🇸 {c.verb.m}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {results.corrects.length===0&&<div style={{...S.card,textAlign:"center",color:C.green,marginBottom:16,fontSize:15}}>✓ ¡Sin errores! Todos los verbos avanzan de nivel.</div>}
+
+        {results.errs.length>0&&(
+          <div style={{...S.card,marginBottom:16}}>
+            <div style={{fontSize:10,color:C.textSec,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>Mañana repetirás</div>
+            {results.errs.map(v=>(
+              <div key={v.id} style={{fontSize:13,color:C.textSec,marginBottom:6,...mono,fontFamily:"'JetBrains Mono',monospace"}}>
+                <span style={{color:C.red}}>{v.b}</span> → {v.p} → <span style={{color:C.green}}>{v.pp}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button style={S.btn()} onClick={onHome}>Volver al inicio</button>
+        <button style={S.ghost()} onClick={onStats}>Ver mi progreso completo</button>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════════════════════════════════════════
+function StatsScreen({progress,onBack,onReset}){
+  const [sfilt,setSfilt]=useState("all");
+  const introduced=VERBS.filter(v=>progress[v.id]?.introduced).length;
+  const filters=[{k:"all",l:"Todos"},{k:"strong",l:"💪 Fuertes"},{k:"reviewing",l:"🔄 Repaso"},{k:"weak",l:"⚠ Débiles"},{k:"new",l:"✦ Sin ver"}];
+  const filtered=VERBS.filter(v=>{
+    const p=progress[v.id],lv=p?.level||0;
+    if(sfilt==="all")return true;if(sfilt==="new")return!p?.introduced;
+    if(sfilt==="strong")return p?.introduced&&lv>=4;if(sfilt==="weak")return p?.introduced&&lv<=1;
+    if(sfilt==="reviewing")return p?.introduced&&lv>1&&lv<4;return true;
+  });
+  return(
+    <div style={S.root}>
+      <div style={S.wrap}>
+        <div style={{paddingTop:32,paddingBottom:16,display:"flex",alignItems:"center",gap:14}}>
+          <button onClick={onBack} style={{background:"none",border:"none",color:C.textSec,cursor:"pointer",fontSize:22}}>←</button>
+          <h2 style={{margin:0,fontSize:20,fontWeight:700}}>Mi progreso · {introduced}/100</h2>
+        </div>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:16}}>
+          {filters.map(({k,l})=>(
+            <button key={k} onClick={()=>setSfilt(k)} style={{background:sfilt===k?C.amber:"transparent",color:sfilt===k?"#000":C.textSec,border:`1px solid ${sfilt===k?C.amber:C.border}`,borderRadius:8,padding:"6px 12px",cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:"inherit"}}>{l}</button>
+          ))}
+        </div>
+        <div style={{fontSize:12,color:C.textSec,marginBottom:10}}>{filtered.length} verbos</div>
+        {filtered.map(v=>{
+          const p=progress[v.id],lv=p?.level||0;
+          const col=!p?.introduced?C.violet:lv>=4?C.green:lv<=1?C.red:C.amber;
+          return(
+            <div key={v.id} style={{...S.card,padding:"12px 16px",marginBottom:8,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:6}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:7,height:7,borderRadius:"50%",background:col,flexShrink:0}}/>
+                <span style={{...mono,fontSize:14,fontFamily:"'JetBrains Mono',monospace"}}>{v.b}</span>
+                <span style={{...mono,fontSize:11,color:C.textSec,fontFamily:"'JetBrains Mono',monospace"}}>{v.p} · {v.pp}</span>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:11,color:C.violet}}>{v.m}</span>
+                {p?.introduced&&<span style={{fontSize:10,color:C.textSec}}>✓{p.correct} ✗{p.wrong}</span>}
+                <span style={{...S.tag(col),marginBottom:0,fontSize:10}}>Lv {p?.introduced?p.level:"—"}</span>
+              </div>
+            </div>
+          );
+        })}
+        <button onClick={onReset} style={{...S.ghost(20),color:C.red,borderColor:C.red+"44"}}>🗑 Reiniciar mi progreso</button>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  APP
+// ══════════════════════════════════════════════════════════════════════════════
+function App(){
+  const [screen,setScreen]=useState("loading");
+  const [user,setUser]=useState(null);
+  const [progress,setProg]=useState({});
+  const [history,setHistory]=useState([]);
+  const [session,setSession]=useState([]);
+  const [si,setSi]=useState(0);
+  const [qs,setQs]=useState([]);
+  const [qi,setQi]=useState(0);
+  const [answers,setAnswers]=useState({});
+  const [inputV,setInputV]=useState("");
+  const [fb,setFb]=useState(null);
+  const [results,setResults]=useState(null);
+  const [saving,setSaving]=useState(false);
+  const aRef=useRef({});
+
+  // Auto-login
+  useEffect(()=>{
+    const uname=localStorage.getItem("vm_username");
+    const pin=localStorage.getItem("vm_pin");
+    if(uname&&pin){
+      apiCall({action:"login",username:uname,pin}).then(data=>{
+        handleLogin(data);
+      }).catch(()=>setScreen("login"));
+    } else {
+      setScreen("login");
+    }
+  },[]);
+
+  function handleLogin(data){
+    setUser({...data.user, pin: localStorage.getItem("vm_pin")});
+    // Convert string keys to numbers for progress
+    const p={};
+    Object.entries(data.progress||{}).forEach(([k,v])=>{p[parseInt(k)]=v;});
+    setProg(p);
+    setHistory(data.history||[]);
+    setScreen("home");
+  }
+
+  function logout(){
+    localStorage.removeItem("vm_username");
+    localStorage.removeItem("vm_pin");
+    setUser(null);setProg({});setHistory([]);
+    setScreen("login");
+  }
+
+  function startSession(){
+    const s=buildSession(progress,user.dayNumber);
+    if(!s.length)return;
+    setSession(s);setSi(0);setFb(null);aRef.current={};setAnswers({});
+    setScreen("study");
+  }
+
+  function nextStudy(){
+    if(si+1<session.length)setSi(i=>i+1);
+    else{const q=buildQuiz(session);setQs(q);setQi(0);aRef.current={};setAnswers({});setInputV("");setFb(null);setScreen("quiz");}
+  }
+
+  function submitAnswer(q,userAns){
+    const ok=userAns.trim().toLowerCase()===q.correct.toLowerCase();
+    const entry={ans:userAns.trim(),correct:q.correct,ok,vid:q.vid,field:q.field};
+    aRef.current={...aRef.current,[q.id]:entry};
+    setAnswers({...aRef.current});
+    setFb({ok,userAns:userAns.trim(),correctAns:q.correct,sentence:q.sentence||null});
+    setInputV("");
+  }
+
+  function advance(){
+    setFb(null);
+    if(qi+1<qs.length)setQi(i=>i+1);
+    else finishQuiz();
+  }
+
+  function finishQuiz(){
+    const all=aRef.current;
+    const score=Object.values(all).filter(a=>a.ok).length,total=qs.length;
+    const newProg={...progress},vm={};
+    qs.forEach(q=>{const a=all[q.id];if(!vm[q.vid])vm[q.vid]={ok:0,fail:0};if(a?.ok)vm[q.vid].ok++;else vm[q.vid].fail++;});
+    Object.entries(vm).forEach(([id,r])=>{
+      const vid=parseInt(id),c=newProg[vid]||defP();
+      c.introduced=true;
+      if(r.fail>0){c.wrong++;c.errorStreak=(c.errorStreak||0)+1;c.level=Math.max(0,c.level-1);c.nextDay=user.dayNumber+1;}
+      else{c.correct++;c.errorStreak=0;c.level=Math.min(5,c.level+1);c.nextDay=user.dayNumber+INTERVALS[c.level];}
+      newProg[vid]=c;
+    });
+    session.forEach(v=>{if(!newProg[v.id])newProg[v.id]=defP();newProg[v.id].introduced=true;});
+
+    const newStreak=user.streak+1,newDay=user.dayNumber+1;
+    const sessionEntry={day:user.dayNumber,score,total,pct:Math.round((score/total)*100)};
+    const newHistory=[...history,sessionEntry].slice(-14);
+
+    const st=VERBS.filter(v=>(newProg[v.id]?.level||0)>=4).length;
+    const wk=VERBS.filter(v=>newProg[v.id]?.introduced&&(newProg[v.id]?.level||0)<=1).length;
+    const rv=VERBS.filter(v=>newProg[v.id]?.introduced&&(newProg[v.id]?.level||0)>1&&(newProg[v.id]?.level||0)<4).length;
+    const errs=[...new Set(Object.values(all).filter(a=>!a.ok).map(a=>a.vid))].map(id=>VERBS.find(v=>v.id===id)).filter(Boolean);
+    const corrects=Object.values(all).filter(a=>!a.ok).map(a=>({verb:VERBS.find(v=>v.id===a.vid),field:a.field,userAns:a.ans,correct:a.correct})).filter(x=>x.verb);
+
+    const updatedUser={...user,streak:newStreak,dayNumber:newDay};
+    setUser(updatedUser);setProg(newProg);setHistory(newHistory);
+    setResults({score,total,strong:st,weak:wk,reviewing:rv,errs,corrects});
+    setScreen("results");
+
+    // Save to Google Sheets
+    setSaving(true);
+    apiCall({
+      action:"save",username:user.username,pin:user.pin,
+      streak:newStreak,dayNumber:newDay,
+      progress:newProg,session:sessionEntry
+    }).finally(()=>setSaving(false));
+  }
+
+  function resetProgress(){
+    if(!window.confirm("¿Reiniciar todo tu progreso? Esto no se puede deshacer."))return;
+    const emptyProg={};
+    const resetUser={...user,streak:0,dayNumber:1};
+    setProg(emptyProg);setHistory([]);setUser(resetUser);
+    apiCall({action:"save",username:user.username,pin:user.pin,streak:0,dayNumber:1,progress:{},session:null});
+    setScreen("home");
+  }
+
+  if(screen==="loading")return<div style={{...S.root,display:"flex",alignItems:"center",justifyContent:"center"}}><Spinner/></div>;
+  if(screen==="login")return<LoginScreen onLogin={handleLogin}/>;
+  if(screen==="home")return<HomeScreen user={user} progress={progress} history={history} onStart={startSession} onLogout={logout} onStats={()=>setScreen("stats")} onLeaderboard={()=>setScreen("leaderboard")}/>;
+  if(screen==="leaderboard")return<LeaderboardScreen currentUser={user?.username} onBack={()=>setScreen("home")}/>;
+  if(screen==="study")return<StudyScreen session={session} si={si} onNext={nextStudy} onExit={()=>setScreen("home")} progress={progress}/>;
+  if(screen==="quiz")return<QuizScreen qs={qs} qi={qi} answers={answers} inputV={inputV} setInputV={setInputV} fb={fb} onSubmit={submitAnswer} onAdvance={advance}/>;
+  if(screen==="results")return<ResultsScreen results={results} streak={user.streak} saving={saving} onHome={()=>setScreen("home")} onStats={()=>setScreen("stats")}/>;
+  if(screen==="stats")return<StatsScreen progress={progress} onBack={()=>setScreen("home")} onReset={resetProgress}/>;
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
